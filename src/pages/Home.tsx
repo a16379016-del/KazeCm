@@ -25,10 +25,10 @@ export default function Home() {
       iconColor: 'text-[#6E8EFB]'
     },
     {
-      title: '作品集',
+      title: '價目表',
       icon: ExternalLink,
       href: 'https://kaze2001.mystrikingly.com/',
-      description: '查看繪師作品集',
+      description: '點這裡查看詳細價目表與範例圖',
       color: 'from-[#89f7fe]/10 to-[#66a6ff]/10',
       iconBg: 'bg-[#89f7fe]/30',
       iconColor: 'text-[#00b894]'
