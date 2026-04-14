@@ -200,10 +200,17 @@ export default function Admin() {
                   <div>
                     <h3 className="text-3xl font-black text-[#2D3436] tracking-tight">{commission.title}</h3>
                     <p className="text-[#636E72] text-base font-bold mt-1">{commission.nickname} · {commission.contact}</p>
-                    <div className="flex gap-3 mt-3">
-                      <span className="px-3 py-1 bg-black/5 rounded-lg text-xs font-bold text-[#2D3436]">
-                        {commission.category} {commission.subCategory ? `> ${commission.subCategory}` : ''}
-                      </span>
+                    <div className="flex flex-wrap gap-3 mt-3">
+                      {commission.items?.map((item, idx) => (
+                        <span key={idx} className="px-3 py-1 bg-black/5 rounded-lg text-xs font-bold text-[#2D3436]">
+                          {item.category} &gt; {item.subCategory}
+                        </span>
+                      ))}
+                      {!commission.items && commission.category && (
+                        <span className="px-3 py-1 bg-black/5 rounded-lg text-xs font-bold text-[#2D3436]">
+                          {commission.category} {commission.subCategory ? `> ${commission.subCategory}` : ''}
+                        </span>
+                      )}
                       <span className="px-3 py-1 bg-black/5 rounded-lg text-xs font-bold text-[#2D3436]">
                         付款: {commission.paymentMethod || '未指定'}
                       </span>

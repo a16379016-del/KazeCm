@@ -1,11 +1,12 @@
 import React, { useState } from 'react';
 import { GlassCard } from '@/src/components/GlassCard';
 import { ImageUploader } from '@/src/components/ImageUploader';
-import { CheckCircle2, AlertCircle, ArrowRight, ChevronLeft } from 'lucide-react';
+import { CheckCircle2, AlertCircle, ArrowRight, ChevronLeft, Plus, X } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import { db, storage } from '@/src/firebase';
 import { collection, addDoc, serverTimestamp } from 'firebase/firestore';
 import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
+import { CommissionItem } from '@/src/types';
 
 const CATEGORIES: Record<string, { name: string; price: number }[]> = {
   '塗鴉委託': [{ name: '頭貼', price: 1800 }, { name: '半身', price: 2500 }, { name: '全身', price: 5000 }],
@@ -26,15 +27,38 @@ export default function CommissionForm() {
     nickname: '',
     contact: '',
     title: '',
-    category: '塗鴉委託',
-    subCategory: '頭貼',
-    details: '',
     paymentMethod: '超商代碼',
+    details: '',
   });
+  const [items, setItems] = useState<CommissionItem[]>([
+    { category: '塗鴉委託', subCategory: '頭貼', price: 1800 }
+  ]);
   const [imageBlob, setImageBlob] = useState<Blob | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const currentPrice = CATEGORIES[formData.category]?.find(s => s.name === formData.subCategory)?.price || 0;
+  const currentPrice = items.reduce((sum, item) => sum + item.price, 0);
+
+  const handleAddItem = () => {
+    setItems([...items, { category: '塗鴉委託', subCategory: '頭貼', price: 1800 }]);
+  };
+
+  const handleRemoveItem = (index: number) => {
+    if (items.length === 1) return;
+    setItems(items.filter((_, i) => i !== index));
+  };
+
+  const handleItemChange = (index: number, field: 'category' | 'subCategory', value: string) => {
+    const newItems = [...items];
+    if (field === 'category') {
+      newItems[index].category = value;
+      newItems[index].subCategory = CATEGORIES[value][0].name;
+      newItems[index].price = CATEGORIES[value][0].price;
+    } else {
+      newItems[index].subCategory = value;
+      newItems[index].price = CATEGORIES[newItems[index].category].find(s => s.name === value)?.price || 0;
+    }
+    setItems(newItems);
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -55,6 +79,7 @@ export default function CommissionForm() {
       // 3. 將資料寫入 Firestore
       await addDoc(collection(db, 'commissions'), {
         ...formData,
+        items,
         price: currentPrice,
         imageUrl,
         status: '已填單',
@@ -175,37 +200,58 @@ export default function CommissionForm() {
                   />
                 </div>
 
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-8">
-                  <div className="space-y-3">
-                    <label className="text-xs font-black text-[#B2BEC3] uppercase tracking-widest">主類別</label>
-                    <select
-                      className="glass-input w-full appearance-none"
-                      value={formData.category}
-                      onChange={(e) => {
-                        const newCat = e.target.value;
-                        setFormData({
-                          ...formData, 
-                          category: newCat,
-                          subCategory: CATEGORIES[newCat][0].name
-                        });
-                      }}
+                <div className="space-y-4">
+                  <div className="flex items-center justify-between">
+                    <label className="text-xs font-black text-[#B2BEC3] uppercase tracking-widest">委託項目</label>
+                    <button 
+                      type="button" 
+                      onClick={handleAddItem}
+                      className="text-xs font-bold text-[#9D50BB] flex items-center gap-1 hover:bg-[#9D50BB]/10 px-3 py-1.5 rounded-lg transition-colors"
                     >
-                      {Object.keys(CATEGORIES).map(c => <option key={c} value={c} className="bg-white">{c}</option>)}
-                    </select>
+                      <Plus className="w-4 h-4" /> 新增項目
+                    </button>
                   </div>
+                  
                   <div className="space-y-3">
-                    <label className="text-xs font-black text-[#B2BEC3] uppercase tracking-widest">子類別</label>
-                    <select
-                      className="glass-input w-full appearance-none"
-                      value={formData.subCategory}
-                      onChange={(e) => setFormData({...formData, subCategory: e.target.value})}
-                    >
-                      {CATEGORIES[formData.category]?.map(sub => (
-                        <option key={sub.name} value={sub.name} className="bg-white">
-                          {sub.name} {sub.price > 0 ? `($${sub.price})` : ''}
-                        </option>
-                      ))}
-                    </select>
+                    {items.map((item, index) => (
+                      <div key={index} className="flex items-start gap-3 bg-white/40 p-4 rounded-2xl border border-white/60 relative group">
+                        <div className="flex-1 grid grid-cols-1 sm:grid-cols-2 gap-4">
+                          <div className="space-y-2">
+                            <label className="text-[10px] font-black text-[#B2BEC3] uppercase tracking-widest">主類別</label>
+                            <select
+                              className="glass-input w-full appearance-none py-2 text-sm"
+                              value={item.category}
+                              onChange={(e) => handleItemChange(index, 'category', e.target.value)}
+                            >
+                              {Object.keys(CATEGORIES).map(c => <option key={c} value={c} className="bg-white">{c}</option>)}
+                            </select>
+                          </div>
+                          <div className="space-y-2">
+                            <label className="text-[10px] font-black text-[#B2BEC3] uppercase tracking-widest">子類別</label>
+                            <select
+                              className="glass-input w-full appearance-none py-2 text-sm"
+                              value={item.subCategory}
+                              onChange={(e) => handleItemChange(index, 'subCategory', e.target.value)}
+                            >
+                              {CATEGORIES[item.category]?.map(sub => (
+                                <option key={sub.name} value={sub.name} className="bg-white">
+                                  {sub.name} {sub.price > 0 ? `($${sub.price})` : ''}
+                                </option>
+                              ))}
+                            </select>
+                          </div>
+                        </div>
+                        {items.length > 1 && (
+                          <button 
+                            type="button"
+                            onClick={() => handleRemoveItem(index)}
+                            className="mt-6 p-2 text-[#B2BEC3] hover:text-red-500 hover:bg-red-50 rounded-xl transition-colors"
+                          >
+                            <X className="w-5 h-5" />
+                          </button>
+                        )}
+                      </div>
+                    ))}
                   </div>
                 </div>
 

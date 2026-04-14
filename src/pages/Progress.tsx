@@ -105,9 +105,22 @@ export default function Progress() {
                     <span className="text-[#B2BEC3] text-xs uppercase tracking-widest font-black">標題</span>
                     <span className="text-[#2D3436] font-bold">{commission.title}</span>
                   </div>
-                  <div className="flex justify-between border-b border-black/5 pb-3">
-                    <span className="text-[#B2BEC3] text-xs uppercase tracking-widest font-black">類別</span>
-                    <span className="text-[#2D3436] font-bold">{commission.category} {commission.subCategory ? `> ${commission.subCategory}` : ''}</span>
+                  <div className="space-y-3">
+                    <span className="text-[#B2BEC3] text-xs uppercase tracking-widest font-black">委託項目</span>
+                    <div className="space-y-2">
+                      {commission.items?.map((item, idx) => (
+                        <div key={idx} className="flex justify-between items-center bg-black/5 px-4 py-2 rounded-xl">
+                          <span className="text-[#2D3436] font-bold text-sm">{item.category} &gt; {item.subCategory}</span>
+                          {item.price > 0 && <span className="text-[#9D50BB] font-black text-sm">${item.price.toLocaleString()}</span>}
+                        </div>
+                      ))}
+                      {/* Fallback for old data */}
+                      {!commission.items && commission.category && (
+                        <div className="flex justify-between items-center bg-black/5 px-4 py-2 rounded-xl">
+                          <span className="text-[#2D3436] font-bold text-sm">{commission.category} {commission.subCategory ? `> ${commission.subCategory}` : ''}</span>
+                        </div>
+                      )}
+                    </div>
                   </div>
                   <div className="flex justify-between border-b border-black/5 pb-3">
                     <span className="text-[#B2BEC3] text-xs uppercase tracking-widest font-black">付款方式</span>

@@ -15,13 +15,18 @@ export const STATUS_ORDER: CommissionStatus[] = [
   '已交付'
 ];
 
+export interface CommissionItem {
+  category: string;
+  subCategory: string;
+  price: number;
+}
+
 export interface Commission {
   id: string;
   nickname: string;
   contact: string;
   title: string;
-  category: string;
-  subCategory?: string;
+  items: CommissionItem[];
   price?: number;
   paymentMethod?: string;
   details: string;
