@@ -15,6 +15,7 @@ export default function Admin() {
   const [commissions, setCommissions] = useState<Commission[]>([]);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [activeChatId, setActiveChatId] = useState<string | null>(null);
+  const [activeDetailsId, setActiveDetailsId] = useState<string | null>(null);
   const [isOpen, setIsOpen] = useState(true);
 
   useEffect(() => {
@@ -208,17 +209,47 @@ export default function Admin() {
 
                 <div className="flex gap-4 pt-4">
                   <button 
-                    onClick={() => setActiveChatId(activeChatId === commission.id ? null : commission.id)}
+                    onClick={() => {
+                      setActiveChatId(activeChatId === commission.id ? null : commission.id);
+                      if (activeDetailsId === commission.id) setActiveDetailsId(null);
+                    }}
                     className="flex-1 glass-button py-3 px-6 text-sm flex items-center justify-center gap-3 from-blue-500 to-indigo-600"
                   >
                     <MessageCircle className="w-5 h-5" /> 溝通視窗
                   </button>
-                  <button className="flex-1 glass py-3 px-6 text-sm flex items-center justify-center gap-3 text-[#2D3436] font-bold border-white/60 hover:bg-white/80 transition-all rounded-2xl">
+                  <button 
+                    onClick={() => {
+                      setActiveDetailsId(activeDetailsId === commission.id ? null : commission.id);
+                      if (activeChatId === commission.id) setActiveChatId(null);
+                    }}
+                    className="flex-1 glass py-3 px-6 text-sm flex items-center justify-center gap-3 text-[#2D3436] font-bold border-white/60 hover:bg-white/80 transition-all rounded-2xl"
+                  >
                     <Edit3 className="w-5 h-5" /> 詳細需求
                   </button>
                 </div>
               </div>
             </div>
+
+            {/* Inline Details */}
+            <AnimatePresence>
+              {activeDetailsId === commission.id && (
+                <motion.div
+                  initial={{ height: 0, opacity: 0 }}
+                  animate={{ height: 'auto', opacity: 1 }}
+                  exit={{ height: 0, opacity: 0 }}
+                  className="border-t border-white/10 bg-white/5"
+                >
+                  <div className="p-8 space-y-4">
+                    <h4 className="text-xs font-black text-[#B2BEC3] uppercase tracking-widest">詳細需求內容</h4>
+                    <div className="bg-white/40 p-6 rounded-2xl border border-white/60 shadow-sm">
+                      <p className="text-[#2D3436] whitespace-pre-wrap leading-relaxed text-sm font-medium">
+                        {commission.details}
+                      </p>
+                    </div>
+                  </div>
+                </motion.div>
+              )}
+            </AnimatePresence>
 
             {/* Inline Chat */}
             <AnimatePresence>

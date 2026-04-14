@@ -27,7 +27,7 @@ export default function Home() {
     {
       title: '作品集',
       icon: ExternalLink,
-      href: 'https://portfolio.example.com',
+      href: 'https://kaze2001.mystrikingly.com/',
       description: '查看繪師作品集',
       color: 'from-[#89f7fe]/10 to-[#66a6ff]/10',
       iconBg: 'bg-[#89f7fe]/30',
