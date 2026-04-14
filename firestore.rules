@@ -49,7 +49,7 @@ service cloud.firestore {
     }
 
     match /quotes/{quoteId} {
-      allow create: if isValidQuote(request.resource.data);
+      allow create: if true;
       allow read: if isAdmin() || (resource != null && request.query.limit <= 1); 
       allow update: if isAdmin();
       
