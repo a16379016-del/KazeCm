@@ -3,18 +3,39 @@ import { MessageCircle, Send, X, User, ShieldCheck } from 'lucide-react';
 import { Message } from '@/src/types';
 import { cn } from '@/src/lib/utils';
 import { motion, AnimatePresence } from 'motion/react';
+import { db } from '@/src/firebase';
+import { collection, query, orderBy, onSnapshot, addDoc, serverTimestamp } from 'firebase/firestore';
 
 interface ChatWidgetProps {
-  commissionId: string;
+  commissionDocId: string;
+  orderIdDisplay: string;
   isAdmin?: boolean;
-  messages: Message[];
-  onSendMessage: (text: string) => void;
 }
 
-export function ChatWidget({ commissionId, isAdmin = false, messages, onSendMessage }: ChatWidgetProps) {
+export function ChatWidget({ commissionDocId, orderIdDisplay, isAdmin = false }: ChatWidgetProps) {
   const [isOpen, setIsOpen] = useState(false);
   const [inputText, setInputText] = useState('');
+  const [messages, setMessages] = useState<Message[]>([]);
   const scrollRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (!isOpen || !commissionDocId) return;
+
+    const q = query(
+      collection(db, 'commissions', commissionDocId, 'messages'),
+      orderBy('timestamp', 'asc')
+    );
+
+    const unsubscribe = onSnapshot(q, (snapshot) => {
+      const msgs = snapshot.docs.map(doc => ({
+        id: doc.id,
+        ...doc.data()
+      })) as Message[];
+      setMessages(msgs);
+    });
+
+    return () => unsubscribe();
+  }, [isOpen, commissionDocId]);
 
   useEffect(() => {
     if (scrollRef.current) {
@@ -22,10 +43,21 @@ export function ChatWidget({ commissionId, isAdmin = false, messages, onSendMess
     }
   }, [messages, isOpen]);
 
-  const handleSend = () => {
-    if (!inputText.trim()) return;
-    onSendMessage(inputText);
+  const handleSend = async () => {
+    if (!inputText.trim() || !commissionDocId) return;
+    const text = inputText;
     setInputText('');
+    
+    try {
+      await addDoc(collection(db, 'commissions', commissionDocId, 'messages'), {
+        sender: isAdmin ? 'admin' : 'user',
+        text,
+        timestamp: serverTimestamp()
+      });
+    } catch (error) {
+      console.error("Error sending message:", error);
+      alert("發送失敗");
+    }
   };
 
   return (
@@ -46,7 +78,7 @@ export function ChatWidget({ commissionId, isAdmin = false, messages, onSendMess
                 </div>
                 <div>
                   <h3 className="text-base font-black text-white">即時溝通</h3>
-                  <p className="text-[10px] text-white/70 font-bold uppercase tracking-widest">ID: {commissionId}</p>
+                  <p className="text-[10px] text-white/70 font-bold uppercase tracking-widest">ID: {orderIdDisplay}</p>
                 </div>
               </div>
               <button onClick={() => setIsOpen(false)} className="p-2 hover:bg-white/10 rounded-xl transition-colors">

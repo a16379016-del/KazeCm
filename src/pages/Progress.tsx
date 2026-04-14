@@ -5,49 +5,43 @@ import { ChatWidget } from '@/src/components/ChatWidget';
 import { Search, Package, Calendar, User } from 'lucide-react';
 import { Commission, Message } from '@/src/types';
 import { motion, AnimatePresence } from 'motion/react';
+import { db } from '@/src/firebase';
+import { collection, query, where, getDocs, onSnapshot, doc } from 'firebase/firestore';
 
 export default function Progress() {
   const [orderId, setOrderId] = useState('');
   const [commission, setCommission] = useState<Commission | null>(null);
   const [isSearching, setIsSearching] = useState(false);
-  const [messages, setMessages] = useState<Message[]>([]);
 
-  const handleSearch = (e: React.FormEvent) => {
+  const handleSearch = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!orderId.trim()) return;
     setIsSearching(true);
     
-    // TODO: Firebase Logic
-    setTimeout(() => {
-      setCommission({
-        id: '1',
-        nickname: '測試用戶',
-        contact: 'discord#1234',
-        title: '我的夢幻角色',
-        category: '角色設計',
-        details: '長髮、藍眼、穿著斗篷...',
-        imageUrl: 'https://picsum.photos/seed/art/800/600',
-        status: '線稿',
-        createdAt: new Date(),
-        orderId: orderId
-      });
-      setMessages([
-        { id: '1', commissionId: '1', sender: 'admin', text: '你好！我已經開始繪製線稿了。', timestamp: new Date() },
-        { id: '2', commissionId: '1', sender: 'user', text: '好的，期待！', timestamp: new Date() }
-      ]);
-      setIsSearching(false);
-    }, 1000);
-  };
+    try {
+      const q = query(collection(db, 'commissions'), where('orderId', '==', orderId));
+      const querySnapshot = await getDocs(q);
 
-  const handleSendMessage = (text: string) => {
-    const newMessage: Message = {
-      id: Date.now().toString(),
-      commissionId: commission!.id,
-      sender: 'user',
-      text,
-      timestamp: new Date()
-    };
-    setMessages([...messages, newMessage]);
+      if (querySnapshot.empty) {
+        alert('找不到此訂單編號，請確認後再試。');
+        setCommission(null);
+      } else {
+        const docSnap = querySnapshot.docs[0];
+        setCommission({ id: docSnap.id, ...docSnap.data() } as Commission);
+        
+        // 監聽狀態更新
+        onSnapshot(doc(db, 'commissions', docSnap.id), (updatedDoc) => {
+          if (updatedDoc.exists()) {
+            setCommission({ id: updatedDoc.id, ...updatedDoc.data() } as Commission);
+          }
+        });
+      }
+    } catch (error) {
+      console.error("Error searching:", error);
+      alert('查詢發生錯誤');
+    } finally {
+      setIsSearching(false);
+    }
   };
 
   return (
@@ -138,9 +132,8 @@ export default function Progress() {
             </div>
 
             <ChatWidget 
-              commissionId={commission.orderId} 
-              messages={messages} 
-              onSendMessage={handleSendMessage} 
+              commissionDocId={commission.id} 
+              orderIdDisplay={commission.orderId}
             />
           </motion.div>
         )}

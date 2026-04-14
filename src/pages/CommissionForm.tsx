@@ -3,10 +3,14 @@ import { GlassCard } from '@/src/components/GlassCard';
 import { ImageUploader } from '@/src/components/ImageUploader';
 import { CheckCircle2, AlertCircle, ArrowRight, ChevronLeft } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
+import { db, storage } from '@/src/firebase';
+import { collection, addDoc, serverTimestamp } from 'firebase/firestore';
+import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
 
 export default function CommissionForm() {
   const [step, setStep] = useState<'terms' | 'form' | 'success'>('terms');
   const [agreed, setAgreed] = useState(false);
+  const [generatedOrderId, setGeneratedOrderId] = useState('');
   const [formData, setFormData] = useState({
     nickname: '',
     contact: '',
@@ -27,14 +31,32 @@ export default function CommissionForm() {
     }
     setIsSubmitting(true);
     
-    // TODO: Firebase Logic
-    console.log('Submitting:', formData, imageBlob);
-    
-    // Simulate delay
-    setTimeout(() => {
-      setIsSubmitting(false);
+    try {
+      // 1. 產生隨機訂單編號
+      const newOrderId = `#ORDER-${Math.random().toString(36).substring(2, 8).toUpperCase()}`;
+      
+      // 2. 上傳圖片到 Firebase Storage
+      const imageRef = ref(storage, `commissions/${newOrderId}-${Date.now()}`);
+      await uploadBytes(imageRef, imageBlob);
+      const imageUrl = await getDownloadURL(imageRef);
+
+      // 3. 將資料寫入 Firestore
+      await addDoc(collection(db, 'commissions'), {
+        ...formData,
+        imageUrl,
+        status: '已填單',
+        orderId: newOrderId,
+        createdAt: serverTimestamp()
+      });
+
+      setGeneratedOrderId(newOrderId);
       setStep('success');
-    }, 2000);
+    } catch (error) {
+      console.error('Error submitting commission:', error);
+      alert('提交失敗，請稍後再試。');
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (
@@ -192,7 +214,7 @@ export default function CommissionForm() {
               <h2 className="text-5xl font-black text-[#2D3436]">提交成功！</h2>
               <p className="text-[#636E72] text-xl font-medium">
                 您的委託已成功送出，請記下您的訂單編號以便查詢進度。<br/>
-                <span className="text-[#9D50BB] font-mono text-4xl mt-6 block font-black tracking-tighter">#ORDER-12345</span>
+                <span className="text-[#9D50BB] font-mono text-4xl mt-6 block font-black tracking-tighter">{generatedOrderId}</span>
               </p>
               <button
                 onClick={() => window.location.href = '/'}

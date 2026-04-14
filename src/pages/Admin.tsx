@@ -5,43 +5,33 @@ import { Settings, LogOut, Edit3, MessageCircle, Check, X, Shield, Filter } from
 import { motion, AnimatePresence } from 'motion/react';
 import { ChatWidget } from '@/src/components/ChatWidget';
 import { cn } from '@/src/lib/utils';
-import { auth, googleProvider, signInWithPopup, signOut, onAuthStateChanged } from '@/src/firebase';
+import { auth, googleProvider, signInWithPopup, signOut, onAuthStateChanged, db } from '@/src/firebase';
+import { collection, query, orderBy, onSnapshot, doc, updateDoc } from 'firebase/firestore';
 
 export default function Admin() {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [userEmail, setUserEmail] = useState<string | null>(null);
   const [isAuthReady, setIsAuthReady] = useState(false);
-  const [commissions, setCommissions] = useState<Commission[]>([
-    {
-      id: '1',
-      nickname: '測試用戶',
-      contact: 'discord#1234',
-      title: '我的夢幻角色',
-      category: '角色設計',
-      details: '長髮、藍眼、穿著斗篷...',
-      imageUrl: 'https://picsum.photos/seed/art/800/600',
-      status: '線稿',
-      createdAt: new Date(),
-      orderId: '#ORDER-12345'
-    }
-  ]);
+  const [commissions, setCommissions] = useState<Commission[]>([]);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [activeChatId, setActiveChatId] = useState<string | null>(null);
   const [isOpen, setIsOpen] = useState(true);
 
   useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, (user) => {
-      if (user) {
-        setUserEmail(user.email);
-        setIsLoggedIn(true);
-      } else {
-        setUserEmail(null);
-        setIsLoggedIn(false);
-      }
-      setIsAuthReady(true);
+    if (!isLoggedIn) return;
+
+    const q = query(collection(db, 'commissions'), orderBy('createdAt', 'desc'));
+    const unsubscribe = onSnapshot(q, (snapshot) => {
+      const data = snapshot.docs.map(doc => ({
+        id: doc.id,
+        ...doc.data(),
+        createdAt: doc.data().createdAt?.toDate() || new Date()
+      })) as Commission[];
+      setCommissions(data);
     });
+
     return () => unsubscribe();
-  }, []);
+  }, [isLoggedIn]);
 
   const handleLogin = async () => {
     try {
@@ -60,12 +50,22 @@ export default function Admin() {
     }
   };
 
-  const updateStatus = (id: string, status: CommissionStatus) => {
-    setCommissions(prev => prev.map(c => c.id === id ? { ...c, status } : c));
+  const updateStatus = async (id: string, status: CommissionStatus) => {
+    try {
+      await updateDoc(doc(db, 'commissions', id), { status });
+    } catch (error) {
+      console.error("Error updating status:", error);
+      alert("更新狀態失敗");
+    }
   };
 
-  const updateOrderId = (id: string, orderId: string) => {
-    setCommissions(prev => prev.map(c => c.id === id ? { ...c, orderId } : c));
+  const updateOrderId = async (id: string, orderId: string) => {
+    try {
+      await updateDoc(doc(db, 'commissions', id), { orderId });
+    } catch (error) {
+      console.error("Error updating order ID:", error);
+      alert("更新訂單編號失敗");
+    }
   };
 
   if (!isAuthReady) {
@@ -217,10 +217,9 @@ export default function Admin() {
                 >
                   <div className="h-80 p-4">
                     <ChatWidget 
-                      commissionId={commission.orderId} 
+                      commissionDocId={commission.id} 
+                      orderIdDisplay={commission.orderId}
                       isAdmin={true} 
-                      messages={[]} // TODO: Fetch messages
-                      onSendMessage={(text) => console.log('Admin send:', text)} 
                     />
                   </div>
                 </motion.div>
