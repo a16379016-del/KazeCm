@@ -39,7 +39,7 @@ service cloud.firestore {
 
     match /commissions/{commissionId} {
       allow create: if isValidCommission(request.resource.data);
-      allow read: if isAdmin() || (resource != null && request.query.limit <= 1); 
+      allow read: if isAdmin() || (resource != null && request.query.limit <= 1) || request.query.limit <= 20; 
       allow update: if isAdmin();
       
       match /messages/{messageId} {
@@ -50,7 +50,7 @@ service cloud.firestore {
 
     match /quotes/{quoteId} {
       allow create: if isValidQuote(request.resource.data);
-      allow read: if isAdmin() || (resource != null && request.query.limit <= 1); 
+      allow read: if isAdmin() || (resource != null && request.query.limit <= 1) || request.query.limit <= 20; 
       allow update: if isAdmin();
       
       match /messages/{messageId} {

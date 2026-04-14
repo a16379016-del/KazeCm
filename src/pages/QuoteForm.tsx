@@ -13,6 +13,7 @@ export default function QuoteForm() {
   const [generatedQuoteId, setGeneratedQuoteId] = useState('');
   const [formData, setFormData] = useState({
     nickname: '',
+    contact: '',
     item: QUOTE_ITEMS[0],
     details: '',
   });
@@ -69,6 +70,17 @@ export default function QuoteForm() {
                     className="glass-input w-full"
                     value={formData.nickname}
                     onChange={(e) => setFormData({...formData, nickname: e.target.value})}
+                  />
+                </div>
+
+                <div className="space-y-3">
+                  <label className="text-xs font-black text-[#B2BEC3] uppercase tracking-widest">聯絡方式 (Email/Discord/Line)</label>
+                  <input
+                    required
+                    type="text"
+                    className="glass-input w-full"
+                    value={formData.contact}
+                    onChange={(e) => setFormData({...formData, contact: e.target.value})}
                   />
                 </div>
 

@@ -6,24 +6,29 @@ import { Search, Package, Calendar, User } from 'lucide-react';
 import { Commission, Quote } from '@/src/types';
 import { motion, AnimatePresence } from 'motion/react';
 import { db } from '@/src/firebase';
-import { collection, query, where, getDocs, onSnapshot, doc } from 'firebase/firestore';
+import { collection, query, where, getDocs, onSnapshot, doc, limit } from 'firebase/firestore';
 
 export default function Progress() {
+  const [searchMode, setSearchMode] = useState<'id' | 'forgot'>('id');
   const [orderId, setOrderId] = useState('');
+  const [forgotContact, setForgotContact] = useState('');
+  const [forgotNickname, setForgotNickname] = useState('');
+  const [searchResults, setSearchResults] = useState<{type: 'commission'|'quote', id: string, title: string, status: string, displayId: string, date: Date}[] | null>(null);
+  
   const [commission, setCommission] = useState<Commission | null>(null);
   const [quote, setQuote] = useState<Quote | null>(null);
   const [isSearching, setIsSearching] = useState(false);
 
-  const handleSearch = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!orderId.trim()) return;
+  const executeSearch = async (idToSearch: string) => {
+    if (!idToSearch.trim()) return;
     setIsSearching(true);
     setCommission(null);
     setQuote(null);
+    setSearchResults(null);
     
     try {
       // Check commissions first
-      const qCommission = query(collection(db, 'commissions'), where('orderId', '==', orderId));
+      const qCommission = query(collection(db, 'commissions'), where('orderId', '==', idToSearch));
       const querySnapshotCommission = await getDocs(qCommission);
 
       if (!querySnapshotCommission.empty) {
@@ -39,7 +44,7 @@ export default function Progress() {
       }
 
       // Check quotes if not found in commissions
-      const qQuote = query(collection(db, 'quotes'), where('quoteId', '==', orderId));
+      const qQuote = query(collection(db, 'quotes'), where('quoteId', '==', idToSearch));
       const querySnapshotQuote = await getDocs(qQuote);
 
       if (!querySnapshotQuote.empty) {
@@ -63,6 +68,52 @@ export default function Progress() {
     }
   };
 
+  const handleSearch = async (e: React.FormEvent) => {
+    e.preventDefault();
+    await executeSearch(orderId);
+  };
+
+  const handleForgotSearch = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!forgotContact.trim() || !forgotNickname.trim()) return;
+    setIsSearching(true);
+    setCommission(null);
+    setQuote(null);
+    setSearchResults(null);
+
+    try {
+      const commQuery = query(collection(db, 'commissions'), where('contact', '==', forgotContact.trim()), limit(20));
+      const quoteQuery = query(collection(db, 'quotes'), where('contact', '==', forgotContact.trim()), limit(20));
+
+      const [commSnap, quoteSnap] = await Promise.all([getDocs(commQuery), getDocs(quoteQuery)]);
+
+      const results: {type: 'commission'|'quote', id: string, title: string, status: string, displayId: string, date: Date}[] = [];
+      
+      commSnap.forEach(doc => {
+        const data = doc.data();
+        if (data.nickname === forgotNickname.trim()) {
+          results.push({ type: 'commission', id: doc.id, displayId: data.orderId, title: data.title, status: data.status, date: data.createdAt?.toDate() });
+        }
+      });
+
+      quoteSnap.forEach(doc => {
+        const data = doc.data();
+        if (data.nickname === forgotNickname.trim()) {
+          results.push({ type: 'quote', id: doc.id, displayId: data.quoteId, title: data.item, status: data.status, date: data.createdAt?.toDate() });
+        }
+      });
+
+      results.sort((a, b) => (b.date?.getTime() || 0) - (a.date?.getTime() || 0));
+      setSearchResults(results);
+
+    } catch (error) {
+      console.error(error);
+      alert('查詢發生錯誤');
+    } finally {
+      setIsSearching(false);
+    }
+  };
+
   return (
     <div className="max-w-5xl mx-auto space-y-12">
       <div className="text-center space-y-6">
@@ -71,22 +122,90 @@ export default function Progress() {
       </div>
 
       <GlassCard className="p-6 border-white/60">
-        <form onSubmit={handleSearch} className="flex gap-6">
-          <div className="relative flex-1">
-            <Search className="absolute left-5 top-1/2 -translate-y-1/2 w-6 h-6 text-[#A0AEC0]" />
+        {searchMode === 'id' ? (
+          <form onSubmit={handleSearch} className="flex flex-col sm:flex-row gap-4">
+            <div className="relative flex-1">
+              <Search className="absolute left-5 top-1/2 -translate-y-1/2 w-6 h-6 text-[#A0AEC0]" />
+              <input
+                type="text"
+                placeholder="輸入訂單編號 (例如: #ORDER-12345)"
+                className="glass-input w-full pl-14"
+                value={orderId}
+                onChange={(e) => setOrderId(e.target.value)}
+              />
+            </div>
+            <button type="submit" disabled={isSearching} className="glass-button px-12">
+              {isSearching ? '查詢中...' : '查詢'}
+            </button>
+          </form>
+        ) : (
+          <form onSubmit={handleForgotSearch} className="flex flex-col sm:flex-row gap-4">
             <input
               type="text"
-              placeholder="輸入訂單編號 (例如: #ORDER-12345)"
-              className="glass-input w-full pl-14"
-              value={orderId}
-              onChange={(e) => setOrderId(e.target.value)}
+              placeholder="輸入聯絡方式 (Email/Line/Discord)"
+              className="glass-input flex-1"
+              value={forgotContact}
+              onChange={(e) => setForgotContact(e.target.value)}
             />
-          </div>
-          <button type="submit" disabled={isSearching} className="glass-button px-12">
-            {isSearching ? '查詢中...' : '查詢'}
+            <input
+              type="text"
+              placeholder="輸入暱稱"
+              className="glass-input flex-1"
+              value={forgotNickname}
+              onChange={(e) => setForgotNickname(e.target.value)}
+            />
+            <button type="submit" disabled={isSearching} className="glass-button px-12">
+              {isSearching ? '查詢中...' : '找回編號'}
+            </button>
+          </form>
+        )}
+        <div className="mt-4 text-center sm:text-right">
+          <button 
+            onClick={() => {
+              setSearchMode(m => m === 'id' ? 'forgot' : 'id');
+              setSearchResults(null);
+            }} 
+            className="text-sm text-[#9D50BB] font-bold hover:underline"
+          >
+            {searchMode === 'id' ? '忘記編號？使用聯絡方式與暱稱查詢' : '使用編號直接查詢'}
           </button>
-        </form>
+        </div>
       </GlassCard>
+
+      {/* Search Results List */}
+      <AnimatePresence>
+        {searchResults !== null && (
+          <motion.div initial={{opacity:0, y:10}} animate={{opacity:1, y:0}} className="space-y-4">
+            <h3 className="text-xl font-bold text-[#2D3436]">查詢結果 ({searchResults.length} 筆)</h3>
+            {searchResults.length === 0 ? (
+              <p className="text-[#636E72]">找不到符合的紀錄，請確認聯絡方式與暱稱是否正確。</p>
+            ) : (
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                {searchResults.map(res => (
+                  <div 
+                    key={res.id} 
+                    className="glass p-6 rounded-2xl border border-white/60 flex justify-between items-center hover:bg-white/40 transition-colors cursor-pointer" 
+                    onClick={() => {
+                      setOrderId(res.displayId);
+                      setSearchMode('id');
+                      executeSearch(res.displayId);
+                    }}
+                  >
+                    <div>
+                      <div className="text-xs font-black text-[#B2BEC3] mb-1">{res.type === 'commission' ? '委託單' : '報價單'}</div>
+                      <div className="font-bold text-[#2D3436] text-lg">{res.title}</div>
+                      <div className="text-sm text-[#636E72] font-mono mt-1">{res.displayId}</div>
+                    </div>
+                    <div className="px-4 py-2 rounded-xl bg-black/5 text-sm font-bold text-[#2D3436]">
+                      {res.status}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </motion.div>
+        )}
+      </AnimatePresence>
 
       <AnimatePresence>
         {commission && (

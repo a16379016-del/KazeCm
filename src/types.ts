@@ -25,6 +25,7 @@ export interface CommissionItem {
 export interface Quote {
   id: string;
   nickname: string;
+  contact?: string;
   item: string;
   details: string;
   status: '待回覆' | '已回覆';
