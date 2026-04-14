@@ -1,7 +1,7 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
 import { GlassCard } from '@/src/components/GlassCard';
-import { Paintbrush, Search, ExternalLink } from 'lucide-react';
+import { Paintbrush, Search, ExternalLink, MessageCircle } from 'lucide-react';
 import { motion } from 'motion/react';
 
 export default function Home() {
@@ -16,10 +16,19 @@ export default function Home() {
       iconColor: 'text-[#9D50BB]'
     },
     {
+      title: '我要報價',
+      icon: MessageCircle,
+      path: '/quote',
+      description: '填寫詢問項目，獲取專屬報價',
+      color: 'from-[#FF9A9E]/10 to-[#FECFEF]/10',
+      iconBg: 'bg-[#FF9A9E]/20',
+      iconColor: 'text-[#FF758C]'
+    },
+    {
       title: '進度查詢',
       icon: Search,
       path: '/progress',
-      description: '輸入訂單編號，即時追蹤創作進度',
+      description: '輸入訂單或報價編號，即時追蹤進度',
       color: 'from-[#6E8EFB]/10 to-[#a777e3]/10',
       iconBg: 'bg-[#6E8EFB]/20',
       iconColor: 'text-[#6E8EFB]'
@@ -50,7 +59,7 @@ export default function Home() {
         </p>
       </div>
 
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-8">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
         {buttons.map((btn, index) => {
           const Content = (
             <GlassCard className={cn(

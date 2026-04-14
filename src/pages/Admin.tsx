@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { GlassCard } from '@/src/components/GlassCard';
-import { Commission, STATUS_ORDER, CommissionStatus, Message } from '@/src/types';
-import { Settings, LogOut, Edit3, MessageCircle, Check, X, Shield, Filter } from 'lucide-react';
+import { Commission, STATUS_ORDER, CommissionStatus, Quote } from '@/src/types';
+import { Settings, LogOut, Edit3, MessageCircle, Check, X, Shield, Filter, Package } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import { ChatWidget } from '@/src/components/ChatWidget';
 import { cn } from '@/src/lib/utils';
@@ -13,10 +13,12 @@ export default function Admin() {
   const [userEmail, setUserEmail] = useState<string | null>(null);
   const [isAuthReady, setIsAuthReady] = useState(false);
   const [commissions, setCommissions] = useState<Commission[]>([]);
+  const [quotes, setQuotes] = useState<Quote[]>([]);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [activeChatId, setActiveChatId] = useState<string | null>(null);
   const [activeDetailsId, setActiveDetailsId] = useState<string | null>(null);
   const [isOpen, setIsOpen] = useState(true);
+  const [mainTab, setMainTab] = useState<'commissions' | 'quotes'>('commissions');
   const [activeTab, setActiveTab] = useState<'active' | 'history'>('active');
 
   useEffect(() => {
@@ -36,8 +38,8 @@ export default function Admin() {
   useEffect(() => {
     if (!isLoggedIn) return;
 
-    const q = query(collection(db, 'commissions'), orderBy('createdAt', 'desc'));
-    const unsubscribe = onSnapshot(q, (snapshot) => {
+    const qCommissions = query(collection(db, 'commissions'), orderBy('createdAt', 'desc'));
+    const unsubscribeCommissions = onSnapshot(qCommissions, (snapshot) => {
       const data = snapshot.docs.map(doc => ({
         id: doc.id,
         ...doc.data(),
@@ -46,7 +48,20 @@ export default function Admin() {
       setCommissions(data);
     });
 
-    return () => unsubscribe();
+    const qQuotes = query(collection(db, 'quotes'), orderBy('createdAt', 'desc'));
+    const unsubscribeQuotes = onSnapshot(qQuotes, (snapshot) => {
+      const data = snapshot.docs.map(doc => ({
+        id: doc.id,
+        ...doc.data(),
+        createdAt: doc.data().createdAt?.toDate() || new Date()
+      })) as Quote[];
+      setQuotes(data);
+    });
+
+    return () => {
+      unsubscribeCommissions();
+      unsubscribeQuotes();
+    };
   }, [isLoggedIn]);
 
   const handleLogin = async () => {
@@ -143,8 +158,8 @@ export default function Admin() {
     <div className="space-y-12">
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-6">
         <div>
-          <h1 className="text-5xl font-black text-[#2D3436]">委託管理</h1>
-          <p className="text-[#636E72] text-xl font-medium">管理所有委託單、更新進度與即時溝通</p>
+          <h1 className="text-5xl font-black text-[#2D3436]">管理後台</h1>
+          <p className="text-[#636E72] text-xl font-medium">管理所有委託單與報價單</p>
         </div>
         <div className="flex gap-4">
           <button 
@@ -164,27 +179,50 @@ export default function Admin() {
 
       <div className="flex gap-4 border-b border-black/10 pb-4">
         <button
-          onClick={() => setActiveTab('active')}
+          onClick={() => setMainTab('commissions')}
           className={cn(
             "px-6 py-2 rounded-full text-lg font-bold transition-all",
-            activeTab === 'active' ? "bg-[#9D50BB] text-white shadow-md" : "text-[#B2BEC3] hover:text-[#2D3436]"
+            mainTab === 'commissions' ? "bg-[#9D50BB] text-white shadow-md" : "text-[#B2BEC3] hover:text-[#2D3436]"
           )}
         >
-          未完成
+          委託管理
         </button>
         <button
-          onClick={() => setActiveTab('history')}
+          onClick={() => setMainTab('quotes')}
           className={cn(
             "px-6 py-2 rounded-full text-lg font-bold transition-all",
-            activeTab === 'history' ? "bg-[#9D50BB] text-white shadow-md" : "text-[#B2BEC3] hover:text-[#2D3436]"
+            mainTab === 'quotes' ? "bg-[#FF758C] text-white shadow-md" : "text-[#B2BEC3] hover:text-[#2D3436]"
           )}
         >
-          歷史訂單 (已交付)
+          報價管理
         </button>
       </div>
 
-      <div className="grid grid-cols-1 gap-8">
-        {commissions.filter(c => activeTab === 'active' ? c.status !== '已交付' : c.status === '已交付').map(commission => (
+      {mainTab === 'commissions' && (
+        <>
+          <div className="flex gap-4 border-b border-black/10 pb-4">
+            <button
+              onClick={() => setActiveTab('active')}
+              className={cn(
+                "px-6 py-2 rounded-full text-lg font-bold transition-all",
+                activeTab === 'active' ? "bg-[#9D50BB] text-white shadow-md" : "text-[#B2BEC3] hover:text-[#2D3436]"
+              )}
+            >
+              未完成
+            </button>
+            <button
+              onClick={() => setActiveTab('history')}
+              className={cn(
+                "px-6 py-2 rounded-full text-lg font-bold transition-all",
+                activeTab === 'history' ? "bg-[#9D50BB] text-white shadow-md" : "text-[#B2BEC3] hover:text-[#2D3436]"
+              )}
+            >
+              歷史訂單 (已交付)
+            </button>
+          </div>
+
+          <div className="grid grid-cols-1 gap-8">
+            {commissions.filter(c => activeTab === 'active' ? c.status !== '已交付' : c.status === '已交付').map(commission => (
           <GlassCard key={commission.id} className="p-0 overflow-hidden border-white/60 group">
             <div className="p-8 flex flex-col md:flex-row gap-8">
               {/* Image Preview */}
@@ -203,7 +241,7 @@ export default function Admin() {
                     <div className="flex flex-wrap gap-3 mt-3">
                       {commission.items?.map((item, idx) => (
                         <span key={idx} className="px-3 py-1 bg-black/5 rounded-lg text-xs font-bold text-[#2D3436]">
-                          {item.category} &gt; {item.subCategory}
+                          {item.category} &gt; {item.subCategory} {item.characterCount > 1 ? `x${item.characterCount}` : ''}
                         </span>
                       ))}
                       {!commission.items && commission.category && (
@@ -315,8 +353,122 @@ export default function Admin() {
               )}
             </AnimatePresence>
           </GlassCard>
-        ))}
-      </div>
+            ))}
+          </div>
+        </>
+      )}
+
+      {mainTab === 'quotes' && (
+        <div className="grid grid-cols-1 gap-8">
+          {quotes.map(quote => (
+            <GlassCard key={quote.id} className="p-0 overflow-hidden border-white/60 group">
+              <div className="p-8 flex flex-col gap-6">
+                <div className="flex justify-between items-start">
+                  <div>
+                    <h3 className="text-3xl font-black text-[#2D3436] tracking-tight">{quote.item}</h3>
+                    <p className="text-[#636E72] text-base font-bold mt-1">{quote.nickname}</p>
+                    <div className="flex gap-3 mt-3">
+                      <span className="px-3 py-1 bg-black/5 rounded-lg text-xs font-bold text-[#2D3436]">
+                        編號: {quote.quoteId}
+                      </span>
+                    </div>
+                  </div>
+                  <div className="px-4 py-2 rounded-xl bg-pink-50 text-[#FF758C] text-xs font-black uppercase tracking-widest border border-pink-100">
+                    {quote.status}
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+                  <div className="space-y-2">
+                    <label className="text-[10px] font-black text-[#B2BEC3] uppercase tracking-widest">狀態更新</label>
+                    <div className="relative">
+                      <select
+                        className="glass-input w-full text-sm py-3 appearance-none"
+                        value={quote.status}
+                        onChange={async (e) => {
+                          try {
+                            await updateDoc(doc(db, 'quotes', quote.id), { status: e.target.value });
+                          } catch (error) {
+                            console.error("Error updating quote status:", error);
+                            alert("更新狀態失敗");
+                          }
+                        }}
+                      >
+                        <option value="待回覆" className="bg-white">待回覆</option>
+                        <option value="已回覆" className="bg-white">已回覆</option>
+                      </select>
+                      <Filter className="absolute right-4 top-1/2 -translate-y-1/2 w-4 h-4 text-[#B2BEC3] pointer-events-none" />
+                    </div>
+                  </div>
+                </div>
+
+                <div className="flex gap-4 pt-4">
+                  <button 
+                    onClick={() => {
+                      setActiveChatId(activeChatId === quote.id ? null : quote.id);
+                      if (activeDetailsId === quote.id) setActiveDetailsId(null);
+                    }}
+                    className="flex-1 bg-[#FF758C] text-white py-3 px-6 text-sm flex items-center justify-center gap-3 font-bold hover:bg-[#FF758C]/90 transition-all rounded-2xl shadow-md"
+                  >
+                    <MessageCircle className="w-5 h-5" /> 報價回覆
+                  </button>
+                  <button 
+                    onClick={() => {
+                      setActiveDetailsId(activeDetailsId === quote.id ? null : quote.id);
+                      if (activeChatId === quote.id) setActiveChatId(null);
+                    }}
+                    className="flex-1 glass py-3 px-6 text-sm flex items-center justify-center gap-3 text-[#2D3436] font-bold border-white/60 hover:bg-white/80 transition-all rounded-2xl"
+                  >
+                    <Edit3 className="w-5 h-5" /> 詳細需求
+                  </button>
+                </div>
+              </div>
+
+              {/* Inline Details */}
+              <AnimatePresence>
+                {activeDetailsId === quote.id && (
+                  <motion.div
+                    initial={{ height: 0, opacity: 0 }}
+                    animate={{ height: 'auto', opacity: 1 }}
+                    exit={{ height: 0, opacity: 0 }}
+                    className="border-t border-white/10 bg-white/5"
+                  >
+                    <div className="p-8 space-y-4">
+                      <h4 className="text-xs font-black text-[#B2BEC3] uppercase tracking-widest">詳細需求內容</h4>
+                      <div className="bg-white/40 p-6 rounded-2xl border border-white/60 shadow-sm">
+                        <p className="text-[#2D3436] whitespace-pre-wrap leading-relaxed text-sm font-medium">
+                          {quote.details}
+                        </p>
+                      </div>
+                    </div>
+                  </motion.div>
+                )}
+              </AnimatePresence>
+
+              {/* Inline Chat */}
+              <AnimatePresence>
+                {activeChatId === quote.id && (
+                  <motion.div
+                    initial={{ height: 0, opacity: 0 }}
+                    animate={{ height: 'auto', opacity: 1 }}
+                    exit={{ height: 0, opacity: 0 }}
+                    className="border-t border-white/10 bg-white/5"
+                  >
+                    <div className="h-80 p-4">
+                      <ChatWidget 
+                        commissionDocId={quote.id} 
+                        orderIdDisplay={quote.quoteId}
+                        isAdmin={true} 
+                        collectionName="quotes"
+                      />
+                    </div>
+                  </motion.div>
+                )}
+              </AnimatePresence>
+            </GlassCard>
+          ))}
+        </div>
+      )}
     </div>
   );
 }

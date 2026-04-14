@@ -3,7 +3,7 @@ import { GlassCard } from '@/src/components/GlassCard';
 import { Stepper } from '@/src/components/Stepper';
 import { ChatWidget } from '@/src/components/ChatWidget';
 import { Search, Package, Calendar, User } from 'lucide-react';
-import { Commission, Message } from '@/src/types';
+import { Commission, Quote } from '@/src/types';
 import { motion, AnimatePresence } from 'motion/react';
 import { db } from '@/src/firebase';
 import { collection, query, where, getDocs, onSnapshot, doc } from 'firebase/firestore';
@@ -11,31 +11,50 @@ import { collection, query, where, getDocs, onSnapshot, doc } from 'firebase/fir
 export default function Progress() {
   const [orderId, setOrderId] = useState('');
   const [commission, setCommission] = useState<Commission | null>(null);
+  const [quote, setQuote] = useState<Quote | null>(null);
   const [isSearching, setIsSearching] = useState(false);
 
   const handleSearch = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!orderId.trim()) return;
     setIsSearching(true);
+    setCommission(null);
+    setQuote(null);
     
     try {
-      const q = query(collection(db, 'commissions'), where('orderId', '==', orderId));
-      const querySnapshot = await getDocs(q);
+      // Check commissions first
+      const qCommission = query(collection(db, 'commissions'), where('orderId', '==', orderId));
+      const querySnapshotCommission = await getDocs(qCommission);
 
-      if (querySnapshot.empty) {
-        alert('找不到此訂單編號，請確認後再試。');
-        setCommission(null);
-      } else {
-        const docSnap = querySnapshot.docs[0];
+      if (!querySnapshotCommission.empty) {
+        const docSnap = querySnapshotCommission.docs[0];
         setCommission({ id: docSnap.id, ...docSnap.data() } as Commission);
         
-        // 監聽狀態更新
         onSnapshot(doc(db, 'commissions', docSnap.id), (updatedDoc) => {
           if (updatedDoc.exists()) {
             setCommission({ id: updatedDoc.id, ...updatedDoc.data() } as Commission);
           }
         });
+        return;
       }
+
+      // Check quotes if not found in commissions
+      const qQuote = query(collection(db, 'quotes'), where('quoteId', '==', orderId));
+      const querySnapshotQuote = await getDocs(qQuote);
+
+      if (!querySnapshotQuote.empty) {
+        const docSnap = querySnapshotQuote.docs[0];
+        setQuote({ id: docSnap.id, ...docSnap.data() } as Quote);
+        
+        onSnapshot(doc(db, 'quotes', docSnap.id), (updatedDoc) => {
+          if (updatedDoc.exists()) {
+            setQuote({ id: updatedDoc.id, ...updatedDoc.data() } as Quote);
+          }
+        });
+        return;
+      }
+
+      alert('找不到此編號，請確認後再試。');
     } catch (error) {
       console.error("Error searching:", error);
       alert('查詢發生錯誤');
@@ -110,8 +129,11 @@ export default function Progress() {
                     <div className="space-y-2">
                       {commission.items?.map((item, idx) => (
                         <div key={idx} className="flex justify-between items-center bg-black/5 px-4 py-2 rounded-xl">
-                          <span className="text-[#2D3436] font-bold text-sm">{item.category} &gt; {item.subCategory}</span>
-                          {item.price > 0 && <span className="text-[#9D50BB] font-black text-sm">${item.price.toLocaleString()}</span>}
+                          <span className="text-[#2D3436] font-bold text-sm">
+                            {item.category} &gt; {item.subCategory}
+                            {item.characterCount > 1 && <span className="ml-2 text-[#9D50BB]">x{item.characterCount}</span>}
+                          </span>
+                          {item.price > 0 && <span className="text-[#9D50BB] font-black text-sm">${(item.price * (item.characterCount || 1)).toLocaleString()}</span>}
                         </div>
                       ))}
                       {/* Fallback for old data */}
@@ -163,6 +185,53 @@ export default function Progress() {
             <ChatWidget 
               commissionDocId={commission.id} 
               orderIdDisplay={commission.orderId}
+              collectionName="commissions"
+            />
+          </motion.div>
+        )}
+
+        {quote && (
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="space-y-12"
+          >
+            <GlassCard className="p-12 border-white/60">
+              <h2 className="text-2xl font-bold text-[#2D3436] mb-8 flex items-center gap-3">
+                <div className="w-10 h-10 rounded-xl bg-pink-100 flex items-center justify-center">
+                  <Package className="w-6 h-6 text-[#FF758C]" />
+                </div>
+                報價單狀態: <span className="text-[#FF758C]">{quote.status}</span>
+              </h2>
+              
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-10">
+                <div className="space-y-6">
+                  <div className="flex justify-between border-b border-black/5 pb-3">
+                    <span className="text-[#B2BEC3] text-xs uppercase tracking-widest font-black">報價編號</span>
+                    <span className="text-[#2D3436] font-bold">{quote.quoteId}</span>
+                  </div>
+                  <div className="flex justify-between border-b border-black/5 pb-3">
+                    <span className="text-[#B2BEC3] text-xs uppercase tracking-widest font-black">委託人</span>
+                    <span className="text-[#2D3436] font-bold">{quote.nickname}</span>
+                  </div>
+                  <div className="flex justify-between border-b border-black/5 pb-3">
+                    <span className="text-[#B2BEC3] text-xs uppercase tracking-widest font-black">詢問項目</span>
+                    <span className="text-[#2D3436] font-bold">{quote.item}</span>
+                  </div>
+                </div>
+                <div className="space-y-3">
+                  <span className="text-[#B2BEC3] text-xs uppercase tracking-widest font-black">詳細需求</span>
+                  <p className="text-[#636E72] text-base leading-relaxed bg-black/5 p-6 rounded-2xl font-medium h-full">
+                    {quote.details}
+                  </p>
+                </div>
+              </div>
+            </GlassCard>
+
+            <ChatWidget 
+              commissionDocId={quote.id} 
+              orderIdDisplay={quote.quoteId}
+              collectionName="quotes"
             />
           </motion.div>
         )}

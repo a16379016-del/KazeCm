@@ -19,6 +19,17 @@ export interface CommissionItem {
   category: string;
   subCategory: string;
   price: number;
+  characterCount: number;
+}
+
+export interface Quote {
+  id: string;
+  nickname: string;
+  item: string;
+  details: string;
+  status: '待回覆' | '已回覆';
+  createdAt: any; // Firestore Timestamp
+  quoteId: string;
 }
 
 export interface Commission {

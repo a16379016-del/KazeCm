@@ -8,15 +8,20 @@ import { collection, addDoc, serverTimestamp } from 'firebase/firestore';
 import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
 import { CommissionItem } from '@/src/types';
 
-const CATEGORIES: Record<string, { name: string; price: number }[]> = {
+const CATEGORIES: Record<string, { name: string; price: number; displayPrice?: string }[]> = {
   '塗鴉委託': [{ name: '頭貼', price: 1800 }, { name: '半身', price: 2500 }, { name: '全身', price: 5000 }],
   '黑白頭貼': [{ name: '黑白頭貼', price: 700 }],
   '精緻立繪': [{ name: '精緻立繪', price: 7000 }],
   '插畫': [{ name: '插畫', price: 10000 }],
-  'Q版': [{ name: '無背景', price: 600 }, { name: '有背景請提交後私訊報價', price: 600 }],
-  'Live2D vtuber角色繪製': [{ name: '請提交後私訊報價', price: 30000 }],
-  '動態': [{ name: '純呼吸循環動畫（+客製插畫）', price: 5000 }, { name: '純呼吸循環動畫', price: 1500 }, { name: '客製表演動畫請提交後私訊報價', price: 0 }],
-  '其他': [{ name: '請提交後私訊報價', price: 0 }]
+  'Q版': [{ name: '無背景', price: 600 }, { name: '有背景', price: 600 }],
+  'Live2D vtuber角色繪製': [{ name: '標準', price: 20000, displayPrice: '20000-50000' }],
+  '動態': [
+    { name: '純呼吸循環動畫（+客製插畫）', price: 5000 }, 
+    { name: '純呼吸循環動畫', price: 1500 }, 
+    { name: '客製表演動畫', price: 0 },
+    { name: '拆圖', price: 1000, displayPrice: '1000-3000' }
+  ],
+  '其他': [{ name: '其他', price: 0 }]
 };
 
 export default function CommissionForm() {
@@ -31,15 +36,15 @@ export default function CommissionForm() {
     details: '',
   });
   const [items, setItems] = useState<CommissionItem[]>([
-    { category: '塗鴉委託', subCategory: '頭貼', price: 1800 }
+    { category: '塗鴉委託', subCategory: '頭貼', price: 1800, characterCount: 1 }
   ]);
   const [imageBlob, setImageBlob] = useState<Blob | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const currentPrice = items.reduce((sum, item) => sum + item.price, 0);
+  const currentPrice = items.reduce((sum, item) => sum + (item.price * item.characterCount), 0);
 
   const handleAddItem = () => {
-    setItems([...items, { category: '塗鴉委託', subCategory: '頭貼', price: 1800 }]);
+    setItems([...items, { category: '塗鴉委託', subCategory: '頭貼', price: 1800, characterCount: 1 }]);
   };
 
   const handleRemoveItem = (index: number) => {
@@ -47,15 +52,17 @@ export default function CommissionForm() {
     setItems(items.filter((_, i) => i !== index));
   };
 
-  const handleItemChange = (index: number, field: 'category' | 'subCategory', value: string) => {
+  const handleItemChange = (index: number, field: 'category' | 'subCategory' | 'characterCount', value: string | number) => {
     const newItems = [...items];
     if (field === 'category') {
-      newItems[index].category = value;
-      newItems[index].subCategory = CATEGORIES[value][0].name;
-      newItems[index].price = CATEGORIES[value][0].price;
-    } else {
-      newItems[index].subCategory = value;
+      newItems[index].category = value as string;
+      newItems[index].subCategory = CATEGORIES[value as string][0].name;
+      newItems[index].price = CATEGORIES[value as string][0].price;
+    } else if (field === 'subCategory') {
+      newItems[index].subCategory = value as string;
       newItems[index].price = CATEGORIES[newItems[index].category].find(s => s.name === value)?.price || 0;
+    } else if (field === 'characterCount') {
+      newItems[index].characterCount = value as number;
     }
     setItems(newItems);
   };
@@ -215,7 +222,7 @@ export default function CommissionForm() {
                   <div className="space-y-3">
                     {items.map((item, index) => (
                       <div key={index} className="flex items-start gap-3 bg-white/40 p-4 rounded-2xl border border-white/60 relative group">
-                        <div className="flex-1 grid grid-cols-1 sm:grid-cols-2 gap-4">
+                        <div className="flex-1 grid grid-cols-1 sm:grid-cols-3 gap-4">
                           <div className="space-y-2">
                             <label className="text-[10px] font-black text-[#B2BEC3] uppercase tracking-widest">主類別</label>
                             <select
@@ -235,8 +242,20 @@ export default function CommissionForm() {
                             >
                               {CATEGORIES[item.category]?.map(sub => (
                                 <option key={sub.name} value={sub.name} className="bg-white">
-                                  {sub.name} {sub.price > 0 ? `($${sub.price})` : ''}
+                                  {sub.name} {sub.displayPrice ? `(${sub.displayPrice})` : sub.price > 0 ? `($${sub.price})` : ''}
                                 </option>
+                              ))}
+                            </select>
+                          </div>
+                          <div className="space-y-2">
+                            <label className="text-[10px] font-black text-[#B2BEC3] uppercase tracking-widest">角色人物數量</label>
+                            <select
+                              className="glass-input w-full appearance-none py-2 text-sm"
+                              value={item.characterCount}
+                              onChange={(e) => handleItemChange(index, 'characterCount', parseInt(e.target.value))}
+                            >
+                              {[1,2,3,4,5,6,7,8,9,10].map(num => (
+                                <option key={num} value={num} className="bg-white">{num}</option>
                               ))}
                             </select>
                           </div>

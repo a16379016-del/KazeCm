@@ -10,9 +10,10 @@ interface ChatWidgetProps {
   commissionDocId: string;
   orderIdDisplay: string;
   isAdmin?: boolean;
+  collectionName?: string;
 }
 
-export function ChatWidget({ commissionDocId, orderIdDisplay, isAdmin = false }: ChatWidgetProps) {
+export function ChatWidget({ commissionDocId, orderIdDisplay, isAdmin = false, collectionName = 'commissions' }: ChatWidgetProps) {
   const [isOpen, setIsOpen] = useState(false);
   const [inputText, setInputText] = useState('');
   const [messages, setMessages] = useState<Message[]>([]);
@@ -22,7 +23,7 @@ export function ChatWidget({ commissionDocId, orderIdDisplay, isAdmin = false }:
     if (!isOpen || !commissionDocId) return;
 
     const q = query(
-      collection(db, 'commissions', commissionDocId, 'messages'),
+      collection(db, collectionName, commissionDocId, 'messages'),
       orderBy('timestamp', 'asc')
     );
 
@@ -49,7 +50,7 @@ export function ChatWidget({ commissionDocId, orderIdDisplay, isAdmin = false }:
     setInputText('');
     
     try {
-      await addDoc(collection(db, 'commissions', commissionDocId, 'messages'), {
+      await addDoc(collection(db, collectionName, commissionDocId, 'messages'), {
         sender: isAdmin ? 'admin' : 'user',
         text,
         timestamp: serverTimestamp()
