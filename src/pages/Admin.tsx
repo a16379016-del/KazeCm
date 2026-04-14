@@ -101,7 +101,7 @@ export default function Admin() {
     );
   }
 
-  if (userEmail !== 'a16379016@gmail.com') {
+  if (userEmail?.toLowerCase().trim() !== 'a16379016@gmail.com') {
     return (
       <div className="max-w-md mx-auto pt-20">
         <GlassCard className="p-12 space-y-10 border-white/60 text-center">
@@ -111,6 +111,9 @@ export default function Admin() {
           <h1 className="text-3xl font-black text-[#2D3436]">權限不足</h1>
           <p className="text-[#636E72] text-lg font-medium">
             目前的帳號 ({userEmail}) 沒有管理員權限。
+          </p>
+          <p className="text-sm text-gray-500">
+            (系統設定的管理員為: a16379016@gmail.com)
           </p>
           <button onClick={handleLogout} className="glass-button w-full text-lg">
             登出並切換帳號
