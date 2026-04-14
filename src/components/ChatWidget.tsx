@@ -1,10 +1,11 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { MessageCircle, Send, X, User, ShieldCheck } from 'lucide-react';
+import { MessageCircle, Send, X, User, ShieldCheck, ImagePlus, Loader2 } from 'lucide-react';
 import { Message } from '@/src/types';
 import { cn } from '@/src/lib/utils';
 import { motion, AnimatePresence } from 'motion/react';
-import { db } from '@/src/firebase';
+import { db, storage } from '@/src/firebase';
 import { collection, query, orderBy, onSnapshot, addDoc, serverTimestamp, updateDoc, doc } from 'firebase/firestore';
+import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
 
 interface ChatWidgetProps {
   commissionDocId: string;
@@ -18,7 +19,9 @@ export function ChatWidget({ commissionDocId, orderIdDisplay, isAdmin = false, c
   const [isOpen, setIsOpen] = useState(isAdmin);
   const [inputText, setInputText] = useState('');
   const [messages, setMessages] = useState<Message[]>([]);
+  const [isUploading, setIsUploading] = useState(false);
   const scrollRef = useRef<HTMLDivElement>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     if (!commissionDocId) return;
@@ -75,6 +78,48 @@ export function ChatWidget({ commissionDocId, orderIdDisplay, isAdmin = false, c
     }
   };
 
+  const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file || !commissionDocId) return;
+
+    if (!file.type.startsWith('image/')) {
+      alert('請上傳圖片檔案');
+      return;
+    }
+
+    if (file.size > 5 * 1024 * 1024) {
+      alert('圖片大小不能超過 5MB');
+      return;
+    }
+
+    setIsUploading(true);
+    try {
+      const storageRef = ref(storage, `chat_images/${commissionDocId}/${Date.now()}_${file.name}`);
+      await uploadBytes(storageRef, file);
+      const imageUrl = await getDownloadURL(storageRef);
+
+      await addDoc(collection(db, collectionName, commissionDocId, 'messages'), {
+        sender: isAdmin ? 'admin' : 'user',
+        text: '傳送了一張圖片',
+        imageUrl,
+        timestamp: serverTimestamp()
+      });
+
+      await updateDoc(doc(db, collectionName, commissionDocId), {
+        [isAdmin ? 'hasUnreadUser' : 'hasUnreadAdmin']: true,
+        updatedAt: serverTimestamp()
+      });
+    } catch (error) {
+      console.error("Error uploading image:", error);
+      alert("圖片上傳失敗");
+    } finally {
+      setIsUploading(false);
+      if (fileInputRef.current) {
+        fileInputRef.current.value = '';
+      }
+    }
+  };
+
   if (isAdmin) {
     return (
       <div className="flex flex-col h-full bg-white/30 rounded-2xl border border-white/60 overflow-hidden">
@@ -97,13 +142,34 @@ export function ChatWidget({ commissionDocId, orderIdDisplay, isAdmin = false, c
                   "max-w-[85%] p-3 rounded-2xl text-sm font-bold shadow-sm",
                   isMe ? "bg-[#9D50BB] text-white rounded-tr-none" : "bg-white text-[#2D3436] rounded-tl-none border border-black/5"
                 )}>
-                  {msg.text}
+                  {msg.imageUrl ? (
+                    <div className="space-y-2">
+                      <img src={msg.imageUrl} alt="Uploaded" className="max-w-full rounded-lg" />
+                      {msg.text !== '傳送了一張圖片' && <p>{msg.text}</p>}
+                    </div>
+                  ) : (
+                    msg.text
+                  )}
                 </div>
               </div>
             );
           })}
         </div>
-        <div className="p-4 bg-white/50 border-t border-black/5 flex gap-2">
+        <div className="p-4 bg-white/50 border-t border-black/5 flex gap-2 items-center">
+          <input
+            type="file"
+            accept="image/*"
+            className="hidden"
+            ref={fileInputRef}
+            onChange={handleImageUpload}
+          />
+          <button
+            onClick={() => fileInputRef.current?.click()}
+            disabled={isUploading}
+            className="w-10 h-10 text-[#B2BEC3] hover:text-[#9D50BB] flex items-center justify-center transition-colors disabled:opacity-50"
+          >
+            {isUploading ? <Loader2 className="w-5 h-5 animate-spin" /> : <ImagePlus className="w-5 h-5" />}
+          </button>
           <input
             type="text"
             value={inputText}
@@ -114,7 +180,8 @@ export function ChatWidget({ commissionDocId, orderIdDisplay, isAdmin = false, c
           />
           <button 
             onClick={handleSend}
-            className="w-10 h-10 bg-[#9D50BB] text-white rounded-xl flex items-center justify-center hover:shadow-lg transition-all active:scale-90"
+            disabled={isUploading}
+            className="w-10 h-10 bg-[#9D50BB] text-white rounded-xl flex items-center justify-center hover:shadow-lg transition-all active:scale-90 disabled:opacity-50"
           >
             <Send className="w-4 h-4" />
           </button>
@@ -165,7 +232,14 @@ export function ChatWidget({ commissionDocId, orderIdDisplay, isAdmin = false, c
                       "max-w-[85%] p-4 rounded-2xl text-sm font-bold shadow-sm",
                       isMe ? "bg-[#9D50BB] text-white rounded-tr-none" : "bg-white text-[#2D3436] rounded-tl-none border border-black/5"
                     )}>
-                      {msg.text}
+                      {msg.imageUrl ? (
+                        <div className="space-y-2">
+                          <img src={msg.imageUrl} alt="Uploaded" className="max-w-full rounded-lg" />
+                          {msg.text !== '傳送了一張圖片' && <p>{msg.text}</p>}
+                        </div>
+                      ) : (
+                        msg.text
+                      )}
                     </div>
                     <span className="text-[10px] text-[#B2BEC3] mt-2 px-1 font-black uppercase tracking-widest">
                       {msg.sender === 'admin' ? '繪師' : '委託人'}
@@ -176,7 +250,21 @@ export function ChatWidget({ commissionDocId, orderIdDisplay, isAdmin = false, c
             </div>
 
             {/* Input */}
-            <div className="p-6 bg-white/50 border-t border-black/5 flex gap-3">
+            <div className="p-6 bg-white/50 border-t border-black/5 flex gap-3 items-center">
+              <input
+                type="file"
+                accept="image/*"
+                className="hidden"
+                ref={fileInputRef}
+                onChange={handleImageUpload}
+              />
+              <button
+                onClick={() => fileInputRef.current?.click()}
+                disabled={isUploading}
+                className="w-12 h-12 text-[#B2BEC3] hover:text-[#9D50BB] flex items-center justify-center transition-colors disabled:opacity-50"
+              >
+                {isUploading ? <Loader2 className="w-6 h-6 animate-spin" /> : <ImagePlus className="w-6 h-6" />}
+              </button>
               <input
                 type="text"
                 value={inputText}
@@ -187,7 +275,8 @@ export function ChatWidget({ commissionDocId, orderIdDisplay, isAdmin = false, c
               />
               <button 
                 onClick={handleSend}
-                className="w-12 h-12 bg-[#9D50BB] text-white rounded-xl flex items-center justify-center hover:shadow-lg transition-all active:scale-90"
+                disabled={isUploading}
+                className="w-12 h-12 bg-[#9D50BB] text-white rounded-xl flex items-center justify-center hover:shadow-lg transition-all active:scale-90 disabled:opacity-50"
               >
                 <Send className="w-5 h-5" />
               </button>
