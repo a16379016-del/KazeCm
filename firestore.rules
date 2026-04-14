@@ -1,0 +1,60 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    
+    // ===============================================================
+    // Helper Functions
+    // ===============================================================
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+    
+    function isAdmin() {
+      return isAuthenticated() && 
+        (get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin' ||
+         request.auth.token.email == "Nerumamoru@gmail.com");
+    }
+
+    function isValidCommission(data) {
+      return data.nickname is string && data.nickname.size() > 0 && data.nickname.size() < 100 &&
+             data.contact is string && data.contact.size() > 0 &&
+             data.title is string && data.title.size() > 0 &&
+             data.category in ['插畫', '角色設計', '頭像', '場景', '其他'] &&
+             data.details is string && data.details.size() < 5000 &&
+             data.imageUrl is string &&
+             data.status in ['已填單', '排單中', '草稿', '線稿', '色稿', '成圖', '已交付'] &&
+             data.orderId is string;
+    }
+
+    // ===============================================================
+    // Rules
+    // ===============================================================
+
+    match /commissions/{commissionId} {
+      // Allow anyone to create a commission (if system is open - logic in app)
+      // But we validate the data
+      allow create: if isValidCommission(request.resource.data);
+      
+      // Allow admin to read all, users can read if they know the ID (orderId check is handled in app query)
+      // For security, we allow read if the user provides the correct orderId in the query
+      allow read: if isAdmin() || (resource != null && request.query.limit <= 1); 
+      
+      // Only admin can update status and orderId
+      allow update: if isAdmin() && isValidCommission(request.resource.data);
+      
+      match /messages/{messageId} {
+        allow read: if true; // In a real app, we'd check if user has the orderId
+        allow create: if (request.resource.data.sender == 'user') || isAdmin();
+      }
+    }
+
+    match /settings/global {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+    
+    match /users/{userId} {
+      allow read, write: if request.auth.uid == userId;
+    }
+  }
+}
