@@ -59,7 +59,6 @@ export interface Message {
   commissionId: string;
   sender: 'user' | 'admin';
   text: string;
-  imageUrl?: string;
   timestamp: any;
 }
 
