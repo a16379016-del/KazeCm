@@ -18,6 +18,20 @@ export default function Admin() {
   const [isOpen, setIsOpen] = useState(true);
 
   useEffect(() => {
+    const unsubscribe = onAuthStateChanged(auth, (user) => {
+      if (user) {
+        setUserEmail(user.email);
+        setIsLoggedIn(true);
+      } else {
+        setUserEmail(null);
+        setIsLoggedIn(false);
+      }
+      setIsAuthReady(true);
+    });
+    return () => unsubscribe();
+  }, []);
+
+  useEffect(() => {
     if (!isLoggedIn) return;
 
     const q = query(collection(db, 'commissions'), orderBy('createdAt', 'desc'));

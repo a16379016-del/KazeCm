@@ -37,7 +37,7 @@ export default function CommissionForm() {
       
       // 2. 上傳圖片到 Firebase Storage
       const imageRef = ref(storage, `commissions/${newOrderId}-${Date.now()}`);
-      await uploadBytes(imageRef, imageBlob);
+      await uploadBytes(imageRef, imageBlob, { contentType: 'image/webp' });
       const imageUrl = await getDownloadURL(imageRef);
 
       // 3. 將資料寫入 Firestore
@@ -51,9 +51,9 @@ export default function CommissionForm() {
 
       setGeneratedOrderId(newOrderId);
       setStep('success');
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error submitting commission:', error);
-      alert('提交失敗，請稍後再試。');
+      alert(`提交失敗: ${error.message || '請稍後再試'}`);
     } finally {
       setIsSubmitting(false);
     }
