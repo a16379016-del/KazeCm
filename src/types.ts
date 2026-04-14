@@ -21,8 +21,11 @@ export interface Commission {
   contact: string;
   title: string;
   category: string;
+  subCategory?: string;
+  price?: number;
+  paymentMethod?: string;
   details: string;
-  imageUrl: string;
+  imageUrl?: string;
   status: CommissionStatus;
   createdAt: any; // Firestore Timestamp
   orderId: string;

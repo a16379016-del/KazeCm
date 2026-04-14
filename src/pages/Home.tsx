@@ -43,7 +43,7 @@ export default function Home() {
           animate={{ opacity: 1, y: 0 }}
           className="text-6xl sm:text-8xl font-black text-[#2D3436] tracking-tight"
         >
-          Art<span className="text-[#9D50BB]">Commish</span>
+          Kaze's <span className="text-[#9D50BB]">Commission</span>
         </motion.h1>
         <p className="text-[#636E72] text-xl sm:text-2xl font-medium max-w-2xl mx-auto">
           透明、即時、流暢的創作溝通體驗

@@ -7,6 +7,17 @@ import { db, storage } from '@/src/firebase';
 import { collection, addDoc, serverTimestamp } from 'firebase/firestore';
 import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
 
+const CATEGORIES: Record<string, { name: string; price: number }[]> = {
+  '塗鴉委託': [{ name: '頭貼', price: 1800 }, { name: '半身', price: 2500 }, { name: '全身', price: 5000 }],
+  '黑白頭貼': [{ name: '黑白頭貼', price: 700 }],
+  '精緻立繪': [{ name: '精緻立繪', price: 7000 }],
+  '插畫': [{ name: '插畫', price: 10000 }],
+  'Q版': [{ name: '無背景', price: 600 }, { name: '有背景請提交後私訊報價', price: 600 }],
+  'Live2D vtuber角色繪製': [{ name: '請提交後私訊報價', price: 30000 }],
+  '動態': [{ name: '純呼吸循環動畫（+客製插畫）', price: 5000 }, { name: '純呼吸循環動畫', price: 1500 }, { name: '客製表演動畫請提交後私訊報價', price: 0 }],
+  '其他': [{ name: '請提交後私訊報價', price: 0 }]
+};
+
 export default function CommissionForm() {
   const [step, setStep] = useState<'terms' | 'form' | 'success'>('terms');
   const [agreed, setAgreed] = useState(false);
@@ -15,34 +26,36 @@ export default function CommissionForm() {
     nickname: '',
     contact: '',
     title: '',
-    category: '插畫',
+    category: '塗鴉委託',
+    subCategory: '頭貼',
     details: '',
+    paymentMethod: '超商代碼',
   });
   const [imageBlob, setImageBlob] = useState<Blob | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const categories = ['插畫', '角色設計', '頭像', '場景', '其他'];
+  const currentPrice = CATEGORIES[formData.category]?.find(s => s.name === formData.subCategory)?.price || 0;
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!imageBlob) {
-      alert('請上傳參考圖片');
-      return;
-    }
     setIsSubmitting(true);
     
     try {
       // 1. 產生隨機訂單編號
       const newOrderId = `#ORDER-${Math.random().toString(36).substring(2, 8).toUpperCase()}`;
       
-      // 2. 上傳圖片到 Firebase Storage
-      const imageRef = ref(storage, `commissions/${newOrderId}-${Date.now()}`);
-      await uploadBytes(imageRef, imageBlob, { contentType: 'image/webp' });
-      const imageUrl = await getDownloadURL(imageRef);
+      // 2. 上傳圖片到 Firebase Storage (如果有)
+      let imageUrl = null;
+      if (imageBlob) {
+        const imageRef = ref(storage, `commissions/${newOrderId}-${Date.now()}`);
+        await uploadBytes(imageRef, imageBlob, { contentType: 'image/webp' });
+        imageUrl = await getDownloadURL(imageRef);
+      }
 
       // 3. 將資料寫入 Firestore
       await addDoc(collection(db, 'commissions'), {
         ...formData,
+        price: currentPrice,
         imageUrl,
         status: '已填單',
         orderId: newOrderId,
@@ -82,6 +95,7 @@ export default function CommissionForm() {
                 <p>2. 委託內容嚴禁包含任何違反法律或侵權之內容。</p>
                 <p>3. 付款方式與時程將在確認委託後另行溝通。</p>
                 <p>4. 繪師保有作品之著作權，委託人僅擁有使用權。</p>
+                <p>5. 若有商業用途請先與繪師討論。</p>
               </div>
 
               <div className="pt-8 border-t border-black/5">
@@ -138,11 +152,11 @@ export default function CommissionForm() {
                     />
                   </div>
                   <div className="space-y-3">
-                    <label className="text-xs font-black text-[#B2BEC3] uppercase tracking-widest">聯絡方式</label>
+                    <label className="text-xs font-black text-[#B2BEC3] uppercase tracking-widest">交付信箱</label>
                     <input
                       required
-                      type="text"
-                      placeholder="Discord / Email / Twitter"
+                      type="email"
+                      placeholder="請填寫mail"
                       className="glass-input w-full"
                       value={formData.contact}
                       onChange={(e) => setFormData({...formData, contact: e.target.value})}
@@ -161,15 +175,58 @@ export default function CommissionForm() {
                   />
                 </div>
 
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-8">
+                  <div className="space-y-3">
+                    <label className="text-xs font-black text-[#B2BEC3] uppercase tracking-widest">主類別</label>
+                    <select
+                      className="glass-input w-full appearance-none"
+                      value={formData.category}
+                      onChange={(e) => {
+                        const newCat = e.target.value;
+                        setFormData({
+                          ...formData, 
+                          category: newCat,
+                          subCategory: CATEGORIES[newCat][0].name
+                        });
+                      }}
+                    >
+                      {Object.keys(CATEGORIES).map(c => <option key={c} value={c} className="bg-white">{c}</option>)}
+                    </select>
+                  </div>
+                  <div className="space-y-3">
+                    <label className="text-xs font-black text-[#B2BEC3] uppercase tracking-widest">子類別</label>
+                    <select
+                      className="glass-input w-full appearance-none"
+                      value={formData.subCategory}
+                      onChange={(e) => setFormData({...formData, subCategory: e.target.value})}
+                    >
+                      {CATEGORIES[formData.category]?.map(sub => (
+                        <option key={sub.name} value={sub.name} className="bg-white">
+                          {sub.name} {sub.price > 0 ? `($${sub.price})` : ''}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                </div>
+
                 <div className="space-y-3">
-                  <label className="text-xs font-black text-[#B2BEC3] uppercase tracking-widest">內容類別</label>
-                  <select
-                    className="glass-input w-full appearance-none"
-                    value={formData.category}
-                    onChange={(e) => setFormData({...formData, category: e.target.value})}
-                  >
-                    {categories.map(c => <option key={c} value={c} className="bg-white">{c}</option>)}
-                  </select>
+                  <label className="text-xs font-black text-[#B2BEC3] uppercase tracking-widest">付款方式</label>
+                  <div className="flex flex-wrap gap-4">
+                    {['超商代碼', '信用卡', 'ATM'].map(method => (
+                      <label key={method} className="flex items-center gap-2 cursor-pointer">
+                        <input 
+                          type="radio" 
+                          name="paymentMethod" 
+                          value={method} 
+                          checked={formData.paymentMethod === method}
+                          onChange={(e) => setFormData({...formData, paymentMethod: e.target.value})}
+                          className="w-4 h-4 text-[#9D50BB] focus:ring-[#9D50BB]"
+                        />
+                        <span className="text-[#2D3436] font-medium">{method}</span>
+                      </label>
+                    ))}
+                  </div>
+                  <p className="text-xs text-[#636E72] mt-1">※ 繪師收到訂單後會傳付款連結給您</p>
                 </div>
 
                 <div className="space-y-3">
@@ -177,6 +234,7 @@ export default function CommissionForm() {
                   <textarea
                     required
                     rows={5}
+                    placeholder="若有多張圖片可上傳雲端網址"
                     className="glass-input w-full resize-none"
                     value={formData.details}
                     onChange={(e) => setFormData({...formData, details: e.target.value})}
@@ -184,17 +242,23 @@ export default function CommissionForm() {
                 </div>
 
                 <div className="space-y-3">
-                  <label className="text-xs font-black text-[#B2BEC3] uppercase tracking-widest">參考圖片</label>
+                  <label className="text-xs font-black text-[#B2BEC3] uppercase tracking-widest">參考圖片 (選填)</label>
                   <ImageUploader onImageProcessed={setImageBlob} />
                 </div>
 
-                <button
-                  type="submit"
-                  disabled={isSubmitting}
-                  className="glass-button w-full text-xl"
-                >
-                  {isSubmitting ? '提交中...' : '確認提交委託'}
-                </button>
+                <div className="pt-6 border-t border-black/5 flex items-center justify-between">
+                  <div className="space-y-1">
+                    <div className="text-xs font-black text-[#B2BEC3] uppercase tracking-widest">預估總金額</div>
+                    <div className="text-3xl font-black text-[#9D50BB]">${currentPrice.toLocaleString()}</div>
+                  </div>
+                  <button
+                    type="submit"
+                    disabled={isSubmitting}
+                    className="glass-button px-10 py-4 text-xl"
+                  >
+                    {isSubmitting ? '提交中...' : '確認提交委託'}
+                  </button>
+                </div>
               </form>
             </GlassCard>
           </motion.div>

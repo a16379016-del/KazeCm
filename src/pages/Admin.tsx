@@ -17,6 +17,7 @@ export default function Admin() {
   const [activeChatId, setActiveChatId] = useState<string | null>(null);
   const [activeDetailsId, setActiveDetailsId] = useState<string | null>(null);
   const [isOpen, setIsOpen] = useState(true);
+  const [activeTab, setActiveTab] = useState<'active' | 'history'>('active');
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, (user) => {
@@ -161,14 +162,37 @@ export default function Admin() {
         </div>
       </div>
 
+      <div className="flex gap-4 border-b border-black/10 pb-4">
+        <button
+          onClick={() => setActiveTab('active')}
+          className={cn(
+            "px-6 py-2 rounded-full text-lg font-bold transition-all",
+            activeTab === 'active' ? "bg-[#9D50BB] text-white shadow-md" : "text-[#B2BEC3] hover:text-[#2D3436]"
+          )}
+        >
+          未完成
+        </button>
+        <button
+          onClick={() => setActiveTab('history')}
+          className={cn(
+            "px-6 py-2 rounded-full text-lg font-bold transition-all",
+            activeTab === 'history' ? "bg-[#9D50BB] text-white shadow-md" : "text-[#B2BEC3] hover:text-[#2D3436]"
+          )}
+        >
+          歷史訂單 (已交付)
+        </button>
+      </div>
+
       <div className="grid grid-cols-1 gap-8">
-        {commissions.map(commission => (
+        {commissions.filter(c => activeTab === 'active' ? c.status !== '已交付' : c.status === '已交付').map(commission => (
           <GlassCard key={commission.id} className="p-0 overflow-hidden border-white/60 group">
             <div className="p-8 flex flex-col md:flex-row gap-8">
               {/* Image Preview */}
-              <div className="w-full md:w-56 h-56 rounded-[2rem] overflow-hidden glass border-2 border-white/60 shrink-0 shadow-sm group-hover:scale-[1.02] transition-transform duration-500">
-                <img src={commission.imageUrl} alt="Preview" className="w-full h-full object-cover" />
-              </div>
+              {activeTab === 'active' && commission.imageUrl && (
+                <a href={commission.imageUrl} target="_blank" rel="noopener noreferrer" className="w-full md:w-56 h-56 rounded-[2rem] overflow-hidden glass border-2 border-white/60 shrink-0 shadow-sm group-hover:scale-[1.02] transition-transform duration-500 block">
+                  <img src={commission.imageUrl} alt="Preview" className="w-full h-full object-cover" />
+                </a>
+              )}
 
               {/* Info */}
               <div className="flex-1 space-y-6">
@@ -176,6 +200,19 @@ export default function Admin() {
                   <div>
                     <h3 className="text-3xl font-black text-[#2D3436] tracking-tight">{commission.title}</h3>
                     <p className="text-[#636E72] text-base font-bold mt-1">{commission.nickname} · {commission.contact}</p>
+                    <div className="flex gap-3 mt-3">
+                      <span className="px-3 py-1 bg-black/5 rounded-lg text-xs font-bold text-[#2D3436]">
+                        {commission.category} {commission.subCategory ? `> ${commission.subCategory}` : ''}
+                      </span>
+                      <span className="px-3 py-1 bg-black/5 rounded-lg text-xs font-bold text-[#2D3436]">
+                        付款: {commission.paymentMethod || '未指定'}
+                      </span>
+                      {commission.price !== undefined && (
+                        <span className="px-3 py-1 bg-[#9D50BB]/10 text-[#9D50BB] rounded-lg text-xs font-black">
+                          ${commission.price.toLocaleString()}
+                        </span>
+                      )}
+                    </div>
                   </div>
                   <div className="px-4 py-2 rounded-xl bg-purple-50 text-[#9D50BB] text-xs font-black uppercase tracking-widest border border-purple-100">
                     {commission.status}

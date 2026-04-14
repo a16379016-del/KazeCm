@@ -107,8 +107,18 @@ export default function Progress() {
                   </div>
                   <div className="flex justify-between border-b border-black/5 pb-3">
                     <span className="text-[#B2BEC3] text-xs uppercase tracking-widest font-black">類別</span>
-                    <span className="text-[#2D3436] font-bold">{commission.category}</span>
+                    <span className="text-[#2D3436] font-bold">{commission.category} {commission.subCategory ? `> ${commission.subCategory}` : ''}</span>
                   </div>
+                  <div className="flex justify-between border-b border-black/5 pb-3">
+                    <span className="text-[#B2BEC3] text-xs uppercase tracking-widest font-black">付款方式</span>
+                    <span className="text-[#2D3436] font-bold">{commission.paymentMethod || '未指定'}</span>
+                  </div>
+                  {commission.price !== undefined && (
+                    <div className="flex justify-between border-b border-black/5 pb-3">
+                      <span className="text-[#B2BEC3] text-xs uppercase tracking-widest font-black">預估總金額</span>
+                      <span className="text-[#9D50BB] font-black">${commission.price.toLocaleString()}</span>
+                    </div>
+                  )}
                   <div className="space-y-3">
                     <span className="text-[#B2BEC3] text-xs uppercase tracking-widest font-black">詳細需求</span>
                     <p className="text-[#636E72] text-base leading-relaxed bg-black/5 p-6 rounded-2xl font-medium">
@@ -125,9 +135,15 @@ export default function Progress() {
                   </div>
                   參考圖片
                 </h2>
-                <div className="aspect-video rounded-[2rem] overflow-hidden glass border-2 border-white/60 shadow-sm">
-                  <img src={commission.imageUrl} alt="Reference" className="w-full h-full object-cover" />
-                </div>
+                {commission.imageUrl ? (
+                  <a href={commission.imageUrl} target="_blank" rel="noopener noreferrer" className="aspect-video rounded-[2rem] overflow-hidden glass border-2 border-white/60 shadow-sm block hover:scale-[1.02] transition-transform">
+                    <img src={commission.imageUrl} alt="Reference" className="w-full h-full object-cover" />
+                  </a>
+                ) : (
+                  <div className="aspect-video rounded-[2rem] glass border-2 border-white/60 shadow-sm flex items-center justify-center text-[#B2BEC3] font-bold">
+                    無上傳參考圖片
+                  </div>
+                )}
               </GlassCard>
             </div>
 
