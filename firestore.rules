@@ -26,9 +26,9 @@ service cloud.firestore {
     }
 
     function isValidQuote(data) {
-      return data.nickname is string && data.nickname.size() > 0 && data.nickname.size() < 100 &&
-             data.item is string && data.item.size() > 0 &&
-             data.details is string && data.details.size() < 5000 &&
+      return data.nickname is string &&
+             data.item is string &&
+             data.details is string &&
              data.status in ['待回覆', '已回覆'] &&
              data.quoteId is string;
     }
