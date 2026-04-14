@@ -101,7 +101,7 @@ export default function Admin() {
     );
   }
 
-  if (userEmail !== 'Nerumamoru@gmail.com') {
+  if (userEmail !== 'a16379016@gmail.com') {
     return (
       <div className="max-w-md mx-auto pt-20">
         <GlassCard className="p-12 space-y-10 border-white/60 text-center">
