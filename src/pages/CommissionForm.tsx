@@ -8,6 +8,8 @@ import { collection, addDoc, serverTimestamp } from 'firebase/firestore';
 import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
 import { CommissionItem } from '@/src/types';
 
+import { sendNotificationEmail } from '@/src/lib/email';
+
 const CATEGORIES: Record<string, { name: string; price: number; displayPrice?: string }[]> = {
   '塗鴉委託': [{ name: '大頭貼', price: 1500 }, { name: '半身', price: 2500 }, { name: '全身', price: 5000 }],
   '黑白頭貼': [{ name: '黑白頭貼', price: 700 }],
@@ -97,6 +99,12 @@ export default function CommissionForm() {
         orderId: newOrderId,
         createdAt: serverTimestamp()
       });
+
+      // 4. 發送 Email 通知
+      await sendNotificationEmail(
+        '【新委託通知】您有一筆新的委託單',
+        `委託人：${formData.nickname}\n聯絡方式：${formData.contact}\n委託標題：${formData.title}\n訂單編號：${newOrderId}\n總金額：$${currentPrice}`
+      );
 
       setGeneratedOrderId(newOrderId);
       setStep('success');

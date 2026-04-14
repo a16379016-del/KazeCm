@@ -71,5 +71,11 @@ service cloud.firestore {
     match /users/{userId} {
       allow read, write: if request.auth != null && request.auth.uid == userId;
     }
+
+    match /mail/{mailId} {
+      allow create: if request.resource.data.to == 'a16379016@gmail.com' &&
+                       request.resource.data.message.subject is string &&
+                       request.resource.data.message.text is string;
+    }
   }
 }

@@ -5,6 +5,7 @@ import { cn } from '@/src/lib/utils';
 import { motion, AnimatePresence } from 'motion/react';
 import { db } from '@/src/firebase';
 import { collection, query, orderBy, onSnapshot, addDoc, serverTimestamp, updateDoc, doc } from 'firebase/firestore';
+import { sendNotificationEmail } from '@/src/lib/email';
 
 interface ChatWidgetProps {
   commissionDocId: string;
@@ -69,6 +70,13 @@ export function ChatWidget({ commissionDocId, orderIdDisplay, isAdmin = false, c
         [isAdmin ? 'hasUnreadUser' : 'hasUnreadAdmin']: true,
         updatedAt: serverTimestamp()
       });
+
+      if (!isAdmin) {
+        await sendNotificationEmail(
+          '【新訊息通知】委託人傳送了新訊息',
+          `訂單/報價單編號：${orderIdDisplay}\n訊息內容：${text}`
+        );
+      }
     } catch (error) {
       console.error("Error sending message:", error);
       alert("發送失敗");

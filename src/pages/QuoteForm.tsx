@@ -5,6 +5,7 @@ import { motion, AnimatePresence } from 'motion/react';
 import { db } from '@/src/firebase';
 import { collection, addDoc, serverTimestamp } from 'firebase/firestore';
 import { Link } from 'react-router-dom';
+import { sendNotificationEmail } from '@/src/lib/email';
 
 const QUOTE_ITEMS = ['插畫', '客製動態', 'Live2D vtuber角色繪製', '角色設計'];
 
@@ -32,6 +33,11 @@ export default function QuoteForm() {
         quoteId: newQuoteId,
         createdAt: serverTimestamp()
       });
+
+      await sendNotificationEmail(
+        '【新報價單通知】您有一筆新的報價單',
+        `委託人：${formData.nickname}\n聯絡方式：${formData.contact}\n詢問項目：${formData.item}\n報價編號：${newQuoteId}`
+      );
 
       setGeneratedQuoteId(newQuoteId);
       setStep('success');
