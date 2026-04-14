@@ -142,7 +142,7 @@ export default function Progress() {
           <form onSubmit={handleForgotSearch} className="flex flex-col sm:flex-row gap-4">
             <input
               type="text"
-              placeholder="輸入聯絡方式 (Email/Line/Discord)"
+              placeholder="輸入交付信箱"
               className="glass-input flex-1"
               value={forgotContact}
               onChange={(e) => setForgotContact(e.target.value)}
@@ -167,7 +167,7 @@ export default function Progress() {
             }} 
             className="text-sm text-[#9D50BB] font-bold hover:underline"
           >
-            {searchMode === 'id' ? '忘記編號？使用聯絡方式與暱稱查詢' : '使用編號直接查詢'}
+            {searchMode === 'id' ? '忘記編號？使用信箱與暱稱查詢' : '使用編號直接查詢'}
           </button>
         </div>
       </GlassCard>
@@ -178,7 +178,7 @@ export default function Progress() {
           <motion.div initial={{opacity:0, y:10}} animate={{opacity:1, y:0}} className="space-y-4">
             <h3 className="text-xl font-bold text-[#2D3436]">查詢結果 ({searchResults.length} 筆)</h3>
             {searchResults.length === 0 ? (
-              <p className="text-[#636E72]">找不到符合的紀錄，請確認聯絡方式與暱稱是否正確。</p>
+              <p className="text-[#636E72]">找不到符合的紀錄，請確認信箱與暱稱是否正確。</p>
             ) : (
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 {searchResults.map(res => (
