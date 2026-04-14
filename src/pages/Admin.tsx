@@ -20,6 +20,7 @@ export default function Admin() {
   const [isOpen, setIsOpen] = useState(true);
   const [mainTab, setMainTab] = useState<'commissions' | 'quotes'>('commissions');
   const [activeTab, setActiveTab] = useState<'active' | 'history'>('active');
+  const [activeQuoteTab, setActiveQuoteTab] = useState<'pending' | 'replied'>('pending');
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, (user) => {
@@ -359,8 +360,30 @@ export default function Admin() {
       )}
 
       {mainTab === 'quotes' && (
-        <div className="grid grid-cols-1 gap-8">
-          {quotes.map(quote => (
+        <>
+          <div className="flex gap-4 border-b border-black/10 pb-4">
+            <button
+              onClick={() => setActiveQuoteTab('pending')}
+              className={cn(
+                "px-6 py-2 rounded-full text-lg font-bold transition-all",
+                activeQuoteTab === 'pending' ? "bg-[#FF758C] text-white shadow-md" : "text-[#B2BEC3] hover:text-[#2D3436]"
+              )}
+            >
+              未回覆
+            </button>
+            <button
+              onClick={() => setActiveQuoteTab('replied')}
+              className={cn(
+                "px-6 py-2 rounded-full text-lg font-bold transition-all",
+                activeQuoteTab === 'replied' ? "bg-[#FF758C] text-white shadow-md" : "text-[#B2BEC3] hover:text-[#2D3436]"
+              )}
+            >
+              已回覆
+            </button>
+          </div>
+
+          <div className="grid grid-cols-1 gap-8">
+            {quotes.filter(q => activeQuoteTab === 'pending' ? q.status === '待回覆' : q.status === '已回覆').map(quote => (
             <GlassCard key={quote.id} className="p-0 overflow-hidden border-white/60 group">
               <div className="p-8 flex flex-col gap-6">
                 <div className="flex justify-between items-start">
@@ -468,6 +491,7 @@ export default function Admin() {
             </GlassCard>
           ))}
         </div>
+        </>
       )}
     </div>
   );

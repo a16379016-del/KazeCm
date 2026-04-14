@@ -102,6 +102,7 @@ export default function Progress() {
                   <Package className="w-6 h-6 text-[#9D50BB]" />
                 </div>
                 當前進度
+                <span className="text-sm text-[#B2BEC3] font-medium ml-4">若需與繪師溝通，請點擊右下即時訊息圖示</span>
               </h2>
               <Stepper currentStatus={commission.status} />
             </GlassCard>
@@ -202,6 +203,9 @@ export default function Progress() {
                   <Package className="w-6 h-6 text-[#FF758C]" />
                 </div>
                 報價單狀態: <span className="text-[#FF758C]">{quote.status}</span>
+                {quote.status === '已回覆' && (
+                  <span className="text-sm text-[#B2BEC3] font-medium ml-4">請點擊右下即時訊息圖示</span>
+                )}
               </h2>
               
               <div className="grid grid-cols-1 md:grid-cols-2 gap-10">
