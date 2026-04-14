@@ -31,6 +31,9 @@ export interface Quote {
   status: '待回覆' | '已回覆';
   createdAt: any; // Firestore Timestamp
   quoteId: string;
+  hasUnreadAdmin?: boolean;
+  hasUnreadUser?: boolean;
+  updatedAt?: any;
 }
 
 export interface Commission {
@@ -46,6 +49,9 @@ export interface Commission {
   status: CommissionStatus;
   createdAt: any; // Firestore Timestamp
   orderId: string;
+  hasUnreadAdmin?: boolean;
+  hasUnreadUser?: boolean;
+  updatedAt?: any;
 }
 
 export interface Message {

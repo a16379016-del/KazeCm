@@ -306,6 +306,7 @@ export default function Progress() {
               commissionDocId={commission.id} 
               orderIdDisplay={commission.orderId}
               collectionName="commissions"
+              hasUnread={commission.hasUnreadUser}
             />
           </motion.div>
         )}
@@ -355,6 +356,7 @@ export default function Progress() {
               commissionDocId={quote.id} 
               orderIdDisplay={quote.quoteId}
               collectionName="quotes"
+              hasUnread={quote.hasUnreadUser}
             />
           </motion.div>
         )}

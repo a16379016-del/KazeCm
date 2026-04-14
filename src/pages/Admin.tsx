@@ -155,6 +155,9 @@ export default function Admin() {
     );
   }
 
+  const unreadCommissionsCount = commissions.filter(c => c.hasUnreadAdmin).length;
+  const unreadQuotesCount = quotes.filter(q => q.hasUnreadAdmin).length;
+
   return (
     <div className="space-y-12">
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-6">
@@ -182,20 +185,30 @@ export default function Admin() {
         <button
           onClick={() => setMainTab('commissions')}
           className={cn(
-            "px-6 py-2 rounded-full text-lg font-bold transition-all",
+            "px-6 py-2 rounded-full text-lg font-bold transition-all relative",
             mainTab === 'commissions' ? "bg-[#9D50BB] text-white shadow-md" : "text-[#B2BEC3] hover:text-[#2D3436]"
           )}
         >
           委託管理
+          {unreadCommissionsCount > 0 && (
+            <span className="absolute -top-2 -right-2 bg-red-500 text-white text-xs font-black px-2 py-0.5 rounded-full shadow-lg animate-pulse">
+              {unreadCommissionsCount}
+            </span>
+          )}
         </button>
         <button
           onClick={() => setMainTab('quotes')}
           className={cn(
-            "px-6 py-2 rounded-full text-lg font-bold transition-all",
+            "px-6 py-2 rounded-full text-lg font-bold transition-all relative",
             mainTab === 'quotes' ? "bg-[#FF758C] text-white shadow-md" : "text-[#B2BEC3] hover:text-[#2D3436]"
           )}
         >
           報價管理
+          {unreadQuotesCount > 0 && (
+            <span className="absolute -top-2 -right-2 bg-red-500 text-white text-xs font-black px-2 py-0.5 rounded-full shadow-lg animate-pulse">
+              {unreadQuotesCount}
+            </span>
+          )}
         </button>
       </div>
 
@@ -296,9 +309,12 @@ export default function Admin() {
                       setActiveChatId(activeChatId === commission.id ? null : commission.id);
                       if (activeDetailsId === commission.id) setActiveDetailsId(null);
                     }}
-                    className="flex-1 glass-button py-3 px-6 text-sm flex items-center justify-center gap-3 from-blue-500 to-indigo-600"
+                    className="flex-1 glass-button py-3 px-6 text-sm flex items-center justify-center gap-3 from-blue-500 to-indigo-600 relative"
                   >
                     <MessageCircle className="w-5 h-5" /> 溝通視窗
+                    {commission.hasUnreadAdmin && (
+                      <span className="absolute top-2 right-2 w-3 h-3 bg-red-500 rounded-full animate-pulse shadow-lg border border-white"></span>
+                    )}
                   </button>
                   <button 
                     onClick={() => {
@@ -348,6 +364,7 @@ export default function Admin() {
                       commissionDocId={commission.id} 
                       orderIdDisplay={commission.orderId}
                       isAdmin={true} 
+                      hasUnread={commission.hasUnreadAdmin}
                     />
                   </div>
                 </motion.div>
@@ -431,9 +448,12 @@ export default function Admin() {
                       setActiveChatId(activeChatId === quote.id ? null : quote.id);
                       if (activeDetailsId === quote.id) setActiveDetailsId(null);
                     }}
-                    className="flex-1 bg-[#FF758C] text-white py-3 px-6 text-sm flex items-center justify-center gap-3 font-bold hover:bg-[#FF758C]/90 transition-all rounded-2xl shadow-md"
+                    className="flex-1 bg-[#FF758C] text-white py-3 px-6 text-sm flex items-center justify-center gap-3 font-bold hover:bg-[#FF758C]/90 transition-all rounded-2xl shadow-md relative"
                   >
                     <MessageCircle className="w-5 h-5" /> 報價回覆
+                    {quote.hasUnreadAdmin && (
+                      <span className="absolute top-2 right-2 w-3 h-3 bg-red-500 rounded-full animate-pulse shadow-lg border border-white"></span>
+                    )}
                   </button>
                   <button 
                     onClick={() => {
@@ -483,6 +503,7 @@ export default function Admin() {
                         orderIdDisplay={quote.quoteId}
                         isAdmin={true} 
                         collectionName="quotes"
+                        hasUnread={quote.hasUnreadAdmin}
                       />
                     </div>
                   </motion.div>

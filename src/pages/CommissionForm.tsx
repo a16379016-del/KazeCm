@@ -9,11 +9,11 @@ import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
 import { CommissionItem } from '@/src/types';
 
 const CATEGORIES: Record<string, { name: string; price: number; displayPrice?: string }[]> = {
-  '塗鴉委託': [{ name: '頭貼', price: 1800 }, { name: '半身', price: 2500 }, { name: '全身', price: 5000 }],
+  '塗鴉委託': [{ name: '大頭貼', price: 1500 }, { name: '半身', price: 2500 }, { name: '全身', price: 5000 }],
   '黑白頭貼': [{ name: '黑白頭貼', price: 700 }],
-  '精緻立繪': [{ name: '精緻立繪', price: 7000 }],
+  '精緻正比': [{ name: '精緻頭貼', price: 2500 }, { name: '半身', price: 5000 }, { name: '全身立繪', price: 8000 }],
   '插畫': [{ name: '插畫', price: 10000 }],
-  'Q版': [{ name: '無背景', price: 600 }, { name: '有背景', price: 600 }],
+  'Q版': [{ name: '無背景', price: 1200, displayPrice: '1200-2000' }, { name: '有背景', price: 600 }],
   'Live2D vtuber角色繪製': [{ name: '標準', price: 20000, displayPrice: '20000-50000' }],
   '動態': [
     { name: '純呼吸循環動畫（+客製插畫）', price: 5000 }, 
@@ -21,7 +21,11 @@ const CATEGORIES: Record<string, { name: string; price: number; displayPrice?: s
     { name: '客製表演動畫', price: 0 },
     { name: '拆圖', price: 1000, displayPrice: '1000-3000' }
   ],
-  '其他': [{ name: '其他', price: 0 }]
+  '其他': [
+    { name: '其他', price: 0 },
+    { name: '若需要+背景請用報價功能', price: 0 },
+    { name: '若需要其他項目請用報價功能', price: 0 }
+  ]
 };
 
 export default function CommissionForm() {
@@ -36,7 +40,7 @@ export default function CommissionForm() {
     details: '',
   });
   const [items, setItems] = useState<CommissionItem[]>([
-    { category: '塗鴉委託', subCategory: '頭貼', price: 1800, characterCount: 1 }
+    { category: '塗鴉委託', subCategory: '大頭貼', price: 1500, characterCount: 1 }
   ]);
   const [imageBlob, setImageBlob] = useState<Blob | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -44,7 +48,7 @@ export default function CommissionForm() {
   const currentPrice = items.reduce((sum, item) => sum + (item.price * item.characterCount), 0);
 
   const handleAddItem = () => {
-    setItems([...items, { category: '塗鴉委託', subCategory: '頭貼', price: 1800, characterCount: 1 }]);
+    setItems([...items, { category: '塗鴉委託', subCategory: '大頭貼', price: 1500, characterCount: 1 }]);
   };
 
   const handleRemoveItem = (index: number) => {

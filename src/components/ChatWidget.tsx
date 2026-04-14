@@ -4,23 +4,24 @@ import { Message } from '@/src/types';
 import { cn } from '@/src/lib/utils';
 import { motion, AnimatePresence } from 'motion/react';
 import { db } from '@/src/firebase';
-import { collection, query, orderBy, onSnapshot, addDoc, serverTimestamp } from 'firebase/firestore';
+import { collection, query, orderBy, onSnapshot, addDoc, serverTimestamp, updateDoc, doc } from 'firebase/firestore';
 
 interface ChatWidgetProps {
   commissionDocId: string;
   orderIdDisplay: string;
   isAdmin?: boolean;
   collectionName?: string;
+  hasUnread?: boolean;
 }
 
-export function ChatWidget({ commissionDocId, orderIdDisplay, isAdmin = false, collectionName = 'commissions' }: ChatWidgetProps) {
-  const [isOpen, setIsOpen] = useState(false);
+export function ChatWidget({ commissionDocId, orderIdDisplay, isAdmin = false, collectionName = 'commissions', hasUnread = false }: ChatWidgetProps) {
+  const [isOpen, setIsOpen] = useState(isAdmin);
   const [inputText, setInputText] = useState('');
   const [messages, setMessages] = useState<Message[]>([]);
   const scrollRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    if (!isOpen || !commissionDocId) return;
+    if (!commissionDocId) return;
 
     const q = query(
       collection(db, collectionName, commissionDocId, 'messages'),
@@ -36,7 +37,15 @@ export function ChatWidget({ commissionDocId, orderIdDisplay, isAdmin = false, c
     });
 
     return () => unsubscribe();
-  }, [isOpen, commissionDocId]);
+  }, [commissionDocId, collectionName]);
+
+  useEffect(() => {
+    if (isOpen && hasUnread && commissionDocId) {
+      updateDoc(doc(db, collectionName, commissionDocId), {
+        [isAdmin ? 'hasUnreadAdmin' : 'hasUnreadUser']: false
+      }).catch(console.error);
+    }
+  }, [isOpen, hasUnread, commissionDocId, isAdmin, collectionName]);
 
   useEffect(() => {
     if (scrollRef.current) {
@@ -55,11 +64,64 @@ export function ChatWidget({ commissionDocId, orderIdDisplay, isAdmin = false, c
         text,
         timestamp: serverTimestamp()
       });
+
+      await updateDoc(doc(db, collectionName, commissionDocId), {
+        [isAdmin ? 'hasUnreadUser' : 'hasUnreadAdmin']: true,
+        updatedAt: serverTimestamp()
+      });
     } catch (error) {
       console.error("Error sending message:", error);
       alert("發送失敗");
     }
   };
+
+  if (isAdmin) {
+    return (
+      <div className="flex flex-col h-full bg-white/30 rounded-2xl border border-white/60 overflow-hidden">
+        <div className="p-4 bg-gradient-to-r from-[#9D50BB] to-[#6E48AA] flex items-center gap-3">
+          <MessageCircle className="w-5 h-5 text-white" />
+          <h3 className="text-sm font-black text-white">即時溝通 ({orderIdDisplay})</h3>
+        </div>
+        <div ref={scrollRef} className="flex-1 overflow-y-auto p-4 space-y-4 scrollbar-hide">
+          {messages.length === 0 && (
+            <div className="h-full flex flex-col items-center justify-center text-center opacity-30 space-y-2">
+              <MessageCircle className="w-10 h-10 text-[#9D50BB]" />
+              <p className="text-xs font-black text-[#2D3436]">尚無對話記錄</p>
+            </div>
+          )}
+          {messages.map((msg) => {
+            const isMe = msg.sender === 'admin';
+            return (
+              <div key={msg.id} className={cn("flex flex-col", isMe ? "items-end" : "items-start")}>
+                <div className={cn(
+                  "max-w-[85%] p-3 rounded-2xl text-sm font-bold shadow-sm",
+                  isMe ? "bg-[#9D50BB] text-white rounded-tr-none" : "bg-white text-[#2D3436] rounded-tl-none border border-black/5"
+                )}>
+                  {msg.text}
+                </div>
+              </div>
+            );
+          })}
+        </div>
+        <div className="p-4 bg-white/50 border-t border-black/5 flex gap-2">
+          <input
+            type="text"
+            value={inputText}
+            onChange={(e) => setInputText(e.target.value)}
+            onKeyPress={(e) => e.key === 'Enter' && handleSend()}
+            placeholder="輸入訊息..."
+            className="flex-1 glass-input py-2 px-4 text-sm"
+          />
+          <button 
+            onClick={handleSend}
+            className="w-10 h-10 bg-[#9D50BB] text-white rounded-xl flex items-center justify-center hover:shadow-lg transition-all active:scale-90"
+          >
+            <Send className="w-4 h-4" />
+          </button>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="fixed bottom-6 right-6 z-50">
@@ -96,7 +158,7 @@ export function ChatWidget({ commissionDocId, orderIdDisplay, isAdmin = false, c
                 </div>
               )}
               {messages.map((msg) => {
-                const isMe = (isAdmin && msg.sender === 'admin') || (!isAdmin && msg.sender === 'user');
+                const isMe = msg.sender === 'user';
                 return (
                   <div key={msg.id} className={cn("flex flex-col", isMe ? "items-end" : "items-start")}>
                     <div className={cn(
@@ -137,14 +199,14 @@ export function ChatWidget({ commissionDocId, orderIdDisplay, isAdmin = false, c
       <button
         onClick={() => setIsOpen(!isOpen)}
         className={cn(
-          "w-16 h-16 rounded-[1.5rem] flex items-center justify-center shadow-2xl transition-all duration-500 hover:scale-110 active:scale-90",
+          "w-16 h-16 rounded-[1.5rem] flex items-center justify-center shadow-2xl transition-all duration-500 hover:scale-110 active:scale-90 relative",
           isOpen ? "bg-white text-[#9D50BB] rotate-90" : "bg-gradient-to-r from-[#9D50BB] to-[#6E48AA] text-white"
         )}
       >
         {isOpen ? <X className="w-6 h-6" /> : <MessageCircle className="w-6 h-6" />}
-        {!isOpen && messages.length > 0 && (
-          <div className="absolute -top-1 -right-1 w-5 h-5 bg-red-500 rounded-full border-2 border-white flex items-center justify-center text-[10px] font-bold text-white">
-            !
+        {!isOpen && hasUnread && (
+          <div className="absolute -top-1 -right-1 w-5 h-5 bg-red-500 rounded-full border-2 border-white flex items-center justify-center animate-pulse">
+            <span className="sr-only">New message</span>
           </div>
         )}
       </button>
