@@ -22,6 +22,9 @@ export default function Admin() {
   const [activeTab, setActiveTab] = useState<'active' | 'history'>('active');
   const [activeQuoteTab, setActiveQuoteTab] = useState<'pending' | 'replied'>('pending');
 
+  const activeCommissionsCount = commissions.filter(c => c.status !== '已交付').length;
+  const pendingQuotesCount = quotes.filter(q => q.status === '待回覆').length;
+
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, (user) => {
       if (user) {
@@ -251,7 +254,12 @@ export default function Admin() {
                 <div className="flex justify-between items-start">
                   <div>
                     <h3 className="text-3xl font-black text-[#2D3436] tracking-tight">{commission.title}</h3>
-                    <p className="text-[#636E72] text-base font-bold mt-1">{commission.nickname} · {commission.contact}</p>
+                    <p className="text-[#636E72] text-base font-bold mt-1">
+                      {commission.nickname} · {commission.contact}
+                      <span className="ml-3 text-xs font-medium text-[#B2BEC3]">
+                        {commission.createdAt?.toLocaleString('zh-TW', { hour12: true })}
+                      </span>
+                    </p>
                     <div className="flex flex-wrap gap-3 mt-3">
                       {commission.items?.map((item, idx) => (
                         <span key={idx} className="px-3 py-1 bg-black/5 rounded-lg text-xs font-bold text-[#2D3436]">
@@ -406,7 +414,12 @@ export default function Admin() {
                 <div className="flex justify-between items-start">
                   <div>
                     <h3 className="text-3xl font-black text-[#2D3436] tracking-tight">{quote.item}</h3>
-                    <p className="text-[#636E72] text-base font-bold mt-1">{quote.nickname}</p>
+                    <p className="text-[#636E72] text-base font-bold mt-1">
+                      {quote.nickname}
+                      <span className="ml-3 text-xs font-medium text-[#B2BEC3]">
+                        {quote.createdAt?.toLocaleString('zh-TW', { hour12: true })}
+                      </span>
+                    </p>
                     <div className="flex gap-3 mt-3">
                       <span className="px-3 py-1 bg-black/5 rounded-lg text-xs font-bold text-[#2D3436]">
                         編號: {quote.quoteId}

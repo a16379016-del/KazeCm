@@ -241,6 +241,12 @@ export default function Progress() {
                     <span className="text-[#2D3436] font-bold">{commission.nickname}</span>
                   </div>
                   <div className="flex justify-between border-b border-black/5 pb-3">
+                    <span className="text-[#B2BEC3] text-xs uppercase tracking-widest font-black">下單時間</span>
+                    <span className="text-[#2D3436] font-bold">
+                      {commission.createdAt?.toDate ? commission.createdAt.toDate().toLocaleString('zh-TW', { hour12: true }) : new Date(commission.createdAt).toLocaleString('zh-TW', { hour12: true })}
+                    </span>
+                  </div>
+                  <div className="flex justify-between border-b border-black/5 pb-3">
                     <span className="text-[#B2BEC3] text-xs uppercase tracking-widest font-black">標題</span>
                     <span className="text-[#2D3436] font-bold">{commission.title}</span>
                   </div>
@@ -337,6 +343,12 @@ export default function Progress() {
                   <div className="flex justify-between border-b border-black/5 pb-3">
                     <span className="text-[#B2BEC3] text-xs uppercase tracking-widest font-black">委託人</span>
                     <span className="text-[#2D3436] font-bold">{quote.nickname}</span>
+                  </div>
+                  <div className="flex justify-between border-b border-black/5 pb-3">
+                    <span className="text-[#B2BEC3] text-xs uppercase tracking-widest font-black">下單時間</span>
+                    <span className="text-[#2D3436] font-bold">
+                      {quote.createdAt?.toDate ? quote.createdAt.toDate().toLocaleString('zh-TW', { hour12: true }) : new Date(quote.createdAt).toLocaleString('zh-TW', { hour12: true })}
+                    </span>
                   </div>
                   <div className="flex justify-between border-b border-black/5 pb-3">
                     <span className="text-[#B2BEC3] text-xs uppercase tracking-widest font-black">詢問項目</span>

@@ -54,6 +54,12 @@ export function ChatWidget({ commissionDocId, orderIdDisplay, isAdmin = false, c
     }
   }, [messages, isOpen]);
 
+  const formatTime = (timestamp: any) => {
+    if (!timestamp) return '';
+    const date = timestamp?.toDate ? timestamp.toDate() : new Date(timestamp);
+    return date.toLocaleTimeString('zh-TW', { hour: '2-digit', minute: '2-digit', hour12: true });
+  };
+
   const handleSend = async () => {
     if (!inputText.trim() || !commissionDocId) return;
     const text = inputText;
@@ -107,6 +113,9 @@ export function ChatWidget({ commissionDocId, orderIdDisplay, isAdmin = false, c
                 )}>
                   {msg.text}
                 </div>
+                <span className="text-[10px] text-[#B2BEC3] mt-1 px-1 font-black uppercase tracking-widest">
+                  {formatTime(msg.timestamp)}
+                </span>
               </div>
             );
           })}
@@ -176,7 +185,7 @@ export function ChatWidget({ commissionDocId, orderIdDisplay, isAdmin = false, c
                       {msg.text}
                     </div>
                     <span className="text-[10px] text-[#B2BEC3] mt-2 px-1 font-black uppercase tracking-widest">
-                      {msg.sender === 'admin' ? '繪師' : '委託人'}
+                      {msg.sender === 'admin' ? '繪師' : '委託人'} • {formatTime(msg.timestamp)}
                     </span>
                   </div>
                 );

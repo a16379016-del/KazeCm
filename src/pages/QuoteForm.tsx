@@ -140,6 +140,9 @@ export default function QuoteForm() {
               <p className="text-[#636E72] text-xl font-medium">
                 您的報價單已成功送出，請記下您的報價編號以便查詢進度。<br/>
                 <span className="text-[#9D50BB] font-mono text-4xl mt-6 block font-black tracking-tighter">{generatedQuoteId}</span>
+                <span className="text-sm font-bold text-[#B2BEC3] mt-4 block">
+                  下單時間：{new Date().toLocaleString('zh-TW', { hour12: true })}
+                </span>
               </p>
               <button
                 onClick={() => window.location.href = '/progress'}

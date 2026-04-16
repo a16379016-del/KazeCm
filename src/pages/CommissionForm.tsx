@@ -11,7 +11,14 @@ import { CommissionItem } from '@/src/types';
 import { sendNotificationEmail } from '@/src/lib/email';
 
 const CATEGORIES: Record<string, { name: string; price: number; displayPrice?: string }[]> = {
-  '塗鴉委託': [{ name: '大頭貼', price: 1500 }, { name: '半身', price: 2500 }, { name: '全身', price: 5000 }],
+  '塗鴉委託': [
+    { name: '大頭貼', price: 800 }, 
+    { name: '半身', price: 1600 }, 
+    { name: '全身', price: 2500 },
+    { name: '+背景 半身', price: 500 },
+    { name: '+背景 全身', price: 1000 },
+    { name: '驚喜包', price: 2500 }
+  ],
   '黑白頭貼': [{ name: '黑白頭貼', price: 700 }],
   '精緻正比': [{ name: '精緻頭貼', price: 2500 }, { name: '半身', price: 5000 }, { name: '全身立繪', price: 8000 }],
   '插畫': [{ name: '插畫', price: 10000 }],
@@ -42,7 +49,7 @@ export default function CommissionForm() {
     details: '',
   });
   const [items, setItems] = useState<CommissionItem[]>([
-    { category: '塗鴉委託', subCategory: '大頭貼', price: 1500, characterCount: 1 }
+    { category: '塗鴉委託', subCategory: '大頭貼', price: 800, characterCount: 1 }
   ]);
   const [imageBlob, setImageBlob] = useState<Blob | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -50,7 +57,7 @@ export default function CommissionForm() {
   const currentPrice = items.reduce((sum, item) => sum + (item.price * item.characterCount), 0);
 
   const handleAddItem = () => {
-    setItems([...items, { category: '塗鴉委託', subCategory: '大頭貼', price: 1500, characterCount: 1 }]);
+    setItems([...items, { category: '塗鴉委託', subCategory: '大頭貼', price: 800, characterCount: 1 }]);
   };
 
   const handleRemoveItem = (index: number) => {
@@ -356,6 +363,9 @@ export default function CommissionForm() {
               <p className="text-[#636E72] text-xl font-medium">
                 您的委託已成功送出，請記下您的訂單編號以便查詢進度。<br/>
                 <span className="text-[#9D50BB] font-mono text-4xl mt-6 block font-black tracking-tighter">{generatedOrderId}</span>
+                <span className="text-sm font-bold text-[#B2BEC3] mt-4 block">
+                  下單時間：{new Date().toLocaleString('zh-TW', { hour12: true })}
+                </span>
               </p>
               <button
                 onClick={() => window.location.href = '/'}
