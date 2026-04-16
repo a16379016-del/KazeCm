@@ -7,8 +7,10 @@ import { ChatWidget } from '@/src/components/ChatWidget';
 import { cn } from '@/src/lib/utils';
 import { auth, googleProvider, signInWithPopup, signOut, onAuthStateChanged, db } from '@/src/firebase';
 import { collection, query, orderBy, onSnapshot, doc, updateDoc } from 'firebase/firestore';
+import { useTranslation } from 'react-i18next';
 
 export default function Admin() {
+  const { t } = useTranslation();
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [userEmail, setUserEmail] = useState<string | null>(null);
   const [isAuthReady, setIsAuthReady] = useState(false);
@@ -119,7 +121,7 @@ export default function Admin() {
             <div className="w-20 h-20 bg-purple-100 rounded-[2rem] flex items-center justify-center mx-auto mb-6">
               <Shield className="w-10 h-10 text-[#9D50BB]" />
             </div>
-            <h1 className="text-4xl font-black text-[#2D3436]">管理後台</h1>
+            <h1 className="text-4xl font-black text-[#2D3436]">{t('common.adminPanel')}</h1>
             <p className="text-[#636E72] text-lg font-medium">請使用管理員 Google 帳號登入</p>
           </div>
           <button onClick={handleLogin} className="glass-button w-full text-lg flex items-center justify-center gap-3">
@@ -129,7 +131,7 @@ export default function Admin() {
               <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" />
               <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" />
             </svg>
-            使用 Google 登入
+            {t('common.loginWithGoogle')}
           </button>
         </GlassCard>
       </div>
@@ -165,7 +167,7 @@ export default function Admin() {
     <div className="space-y-12">
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-6">
         <div>
-          <h1 className="text-5xl font-black text-[#2D3436]">管理後台</h1>
+          <h1 className="text-5xl font-black text-[#2D3436]">{t('common.adminPanel')}</h1>
           <p className="text-[#636E72] text-xl font-medium">管理所有委託單與報價單</p>
         </div>
         <div className="flex gap-4">
@@ -192,7 +194,7 @@ export default function Admin() {
             mainTab === 'commissions' ? "bg-[#9D50BB] text-white shadow-md" : "text-[#B2BEC3] hover:text-[#2D3436]"
           )}
         >
-          委託管理
+          {t('common.commissions')} ({activeCommissionsCount})
           {unreadCommissionsCount > 0 && (
             <span className="absolute -top-2 -right-2 bg-red-500 text-white text-xs font-black px-2 py-0.5 rounded-full shadow-lg animate-pulse">
               {unreadCommissionsCount}

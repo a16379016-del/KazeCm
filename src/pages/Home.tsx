@@ -3,41 +3,45 @@ import { Link } from 'react-router-dom';
 import { GlassCard } from '@/src/components/GlassCard';
 import { Paintbrush, Search, ExternalLink, MessageCircle } from 'lucide-react';
 import { motion } from 'motion/react';
+import { useTranslation } from 'react-i18next';
+import { cn } from '@/src/lib/utils';
 
 export default function Home() {
+  const { t } = useTranslation();
+
   const buttons = [
     {
-      title: '我要委託',
+      title: t('home.commissionForm'),
       icon: Paintbrush,
       path: '/commission',
-      description: '填寫詳細需求，開啟您的專屬創作',
+      description: t('home.commissionDesc'),
       color: 'from-[#9D50BB]/10 to-[#6E48AA]/10',
       iconBg: 'bg-[#9D50BB]/20',
       iconColor: 'text-[#9D50BB]'
     },
     {
-      title: '我要報價',
+      title: t('home.quoteForm'),
       icon: MessageCircle,
       path: '/quote',
-      description: '填寫詢問項目，獲取專屬報價',
+      description: t('home.quoteDesc'),
       color: 'from-[#FF9A9E]/10 to-[#FECFEF]/10',
       iconBg: 'bg-[#FF9A9E]/20',
       iconColor: 'text-[#FF758C]'
     },
     {
-      title: '進度查詢',
+      title: t('home.checkProgress'),
       icon: Search,
       path: '/progress',
-      description: '輸入訂單或報價編號，即時追蹤進度',
+      description: t('home.progressDesc'),
       color: 'from-[#6E8EFB]/10 to-[#a777e3]/10',
       iconBg: 'bg-[#6E8EFB]/20',
       iconColor: 'text-[#6E8EFB]'
     },
     {
-      title: '價目表',
+      title: t('home.priceList'),
       icon: ExternalLink,
       href: 'https://kaze2001.mystrikingly.com/',
-      description: '點這裡查看詳細價目表與範例圖',
+      description: t('home.priceListDesc'),
       color: 'from-[#89f7fe]/10 to-[#66a6ff]/10',
       iconBg: 'bg-[#89f7fe]/30',
       iconColor: 'text-[#00b894]'
@@ -45,8 +49,8 @@ export default function Home() {
   ];
 
   return (
-    <div className="space-y-16">
-      <div className="text-center space-y-6">
+    <div className="space-y-16 relative">
+      <div className="text-center space-y-6 pt-12">
         <motion.h1 
           initial={{ opacity: 0, y: -20 }}
           animate={{ opacity: 1, y: 0 }}
@@ -55,7 +59,7 @@ export default function Home() {
           Kaze's <span className="text-[#9D50BB]">Commission</span>
         </motion.h1>
         <p className="text-[#636E72] text-xl sm:text-2xl font-medium max-w-2xl mx-auto">
-          透明、即時、流暢的創作溝通體驗
+          {t('home.subtitle')}
         </p>
       </div>
 
@@ -96,6 +100,3 @@ export default function Home() {
     </div>
   );
 }
-
-// Helper for cn in this file
-import { cn } from '@/src/lib/utils';

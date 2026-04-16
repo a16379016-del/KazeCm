@@ -1,6 +1,7 @@
 import React from 'react';
 import { motion } from 'motion/react';
 import { Link } from 'react-router-dom';
+import { LanguageSwitcher } from './LanguageSwitcher';
 
 export function Layout({ children }: { children: React.ReactNode }) {
   return (
@@ -9,7 +10,8 @@ export function Layout({ children }: { children: React.ReactNode }) {
         <Link to="/" className="text-3xl font-black tracking-tighter text-[#2D3436]">
           ART<span className="text-[#9D50BB]">COMMISH</span>
         </Link>
-        <nav className="flex gap-6">
+        <nav className="flex items-center gap-6">
+          {/* <LanguageSwitcher /> */}
           <Link to="/admin" className="text-sm font-bold uppercase tracking-widest text-[#636E72] hover:text-[#9D50BB] transition-colors">
             Admin
           </Link>

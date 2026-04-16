@@ -7,7 +7,7 @@ import { db, storage } from '@/src/firebase';
 import { collection, addDoc, serverTimestamp } from 'firebase/firestore';
 import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
 import { CommissionItem } from '@/src/types';
-
+import { useTranslation } from 'react-i18next';
 import { sendNotificationEmail } from '@/src/lib/email';
 
 const CATEGORIES: Record<string, { name: string; price: number; displayPrice?: string }[]> = {
@@ -38,6 +38,7 @@ const CATEGORIES: Record<string, { name: string; price: number; displayPrice?: s
 };
 
 export default function CommissionForm() {
+  const { t } = useTranslation();
   const [step, setStep] = useState<'terms' | 'form' | 'success'>('terms');
   const [agreed, setAgreed] = useState(false);
   const [generatedOrderId, setGeneratedOrderId] = useState('');
@@ -138,15 +139,15 @@ export default function CommissionForm() {
                 <div className="w-14 h-14 rounded-2xl bg-amber-100 flex items-center justify-center">
                   <AlertCircle className="w-8 h-8 text-amber-600" />
                 </div>
-                <h2 className="text-4xl font-bold">委託注意事項</h2>
+                <h2 className="text-4xl font-bold">{t('commission.termsTitle')}</h2>
               </div>
               
               <div className="space-y-6 text-[#636E72] leading-relaxed text-xl font-medium">
-                <p>1. 本系統僅供委託管理使用，正式委託需經由繪師確認。</p>
-                <p>2. 委託內容嚴禁包含任何違反法律或侵權之內容。</p>
-                <p>3. 付款方式與時程將在確認委託後另行溝通。</p>
-                <p>4. 繪師保有作品之著作權，委託人僅擁有使用權。</p>
-                <p>5. 若有商業用途請先與繪師討論。</p>
+                <p>{t('commission.term1')}</p>
+                <p>{t('commission.term2')}</p>
+                <p>{t('commission.term3')}</p>
+                <p>{t('commission.term4')}</p>
+                <p>{t('commission.term5')}</p>
               </div>
 
               <div className="pt-8 border-t border-black/5">
@@ -160,7 +161,7 @@ export default function CommissionForm() {
                     checked={agreed} 
                     onChange={(e) => setAgreed(e.target.checked)} 
                   />
-                  <span className="text-[#2D3436] font-bold text-lg">我已閱讀並同意上述須知</span>
+                  <span className="text-[#2D3436] font-bold text-lg">{t('commission.agreeTerms')}</span>
                 </label>
               </div>
 
@@ -169,7 +170,7 @@ export default function CommissionForm() {
                 onClick={() => setStep('form')}
                 className="glass-button w-full flex items-center justify-center gap-3 text-xl"
               >
-                開始填單 <ArrowRight className="w-6 h-6" />
+                {t('common.next')} <ArrowRight className="w-6 h-6" />
               </button>
             </GlassCard>
           </motion.div>
@@ -184,16 +185,16 @@ export default function CommissionForm() {
           >
             <GlassCard className="space-y-10 p-12 border-white/60">
               <div className="flex items-center justify-between">
-                <h2 className="text-4xl font-bold text-[#2D3436]">填寫委託單</h2>
+                <h2 className="text-4xl font-bold text-[#2D3436]">{t('commission.formTitle')}</h2>
                 <button onClick={() => setStep('terms')} className="text-[#B2BEC3] hover:text-[#9D50BB] flex items-center gap-2 text-base font-bold transition-colors">
-                  <ChevronLeft className="w-5 h-5" /> 返回須知
+                  <ChevronLeft className="w-5 h-5" /> {t('common.backToHome')}
                 </button>
               </div>
 
               <form onSubmit={handleSubmit} className="space-y-8">
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-8">
                   <div className="space-y-3">
-                    <label className="text-xs font-black text-[#B2BEC3] uppercase tracking-widest">暱稱</label>
+                    <label className="text-xs font-black text-[#B2BEC3] uppercase tracking-widest">{t('common.nickname')}</label>
                     <input
                       required
                       type="text"
@@ -203,11 +204,11 @@ export default function CommissionForm() {
                     />
                   </div>
                   <div className="space-y-3">
-                    <label className="text-xs font-black text-[#B2BEC3] uppercase tracking-widest">交付信箱</label>
+                    <label className="text-xs font-black text-[#B2BEC3] uppercase tracking-widest">{t('common.contact')}</label>
                     <input
                       required
                       type="email"
-                      placeholder="請填寫mail"
+                      placeholder={t('commission.contactPlaceholder')}
                       className="glass-input w-full"
                       value={formData.contact}
                       onChange={(e) => setFormData({...formData, contact: e.target.value})}
@@ -216,7 +217,7 @@ export default function CommissionForm() {
                 </div>
 
                 <div className="space-y-3">
-                  <label className="text-xs font-black text-[#B2BEC3] uppercase tracking-widest">委託標題</label>
+                  <label className="text-xs font-black text-[#B2BEC3] uppercase tracking-widest">{t('common.title')}</label>
                   <input
                     required
                     type="text"
@@ -228,13 +229,13 @@ export default function CommissionForm() {
 
                 <div className="space-y-4">
                   <div className="flex items-center justify-between">
-                    <label className="text-xs font-black text-[#B2BEC3] uppercase tracking-widest">委託項目</label>
+                    <label className="text-xs font-black text-[#B2BEC3] uppercase tracking-widest">{t('commission.items')}</label>
                     <button 
                       type="button" 
                       onClick={handleAddItem}
                       className="text-xs font-bold text-[#9D50BB] flex items-center gap-1 hover:bg-[#9D50BB]/10 px-3 py-1.5 rounded-lg transition-colors"
                     >
-                      <Plus className="w-4 h-4" /> 新增項目
+                      <Plus className="w-4 h-4" /> {t('commission.addItem')}
                     </button>
                   </div>
                   
@@ -243,17 +244,17 @@ export default function CommissionForm() {
                       <div key={index} className="flex items-start gap-3 bg-white/40 p-4 rounded-2xl border border-white/60 relative group">
                         <div className="flex-1 grid grid-cols-1 sm:grid-cols-3 gap-4">
                           <div className="space-y-2">
-                            <label className="text-[10px] font-black text-[#B2BEC3] uppercase tracking-widest">主類別</label>
+                            <label className="text-[10px] font-black text-[#B2BEC3] uppercase tracking-widest">{t('commission.mainCategory')}</label>
                             <select
                               className="glass-input w-full appearance-none py-2 text-sm"
                               value={item.category}
                               onChange={(e) => handleItemChange(index, 'category', e.target.value)}
                             >
-                              {Object.keys(CATEGORIES).map(c => <option key={c} value={c} className="bg-white">{c}</option>)}
+                              {Object.keys(CATEGORIES).map(c => <option key={c} value={c} className="bg-white">{t(`categories.${c}`, c)}</option>)}
                             </select>
                           </div>
                           <div className="space-y-2">
-                            <label className="text-[10px] font-black text-[#B2BEC3] uppercase tracking-widest">子類別</label>
+                            <label className="text-[10px] font-black text-[#B2BEC3] uppercase tracking-widest">{t('commission.subCategory')}</label>
                             <select
                               className="glass-input w-full appearance-none py-2 text-sm"
                               value={item.subCategory}
@@ -261,13 +262,13 @@ export default function CommissionForm() {
                             >
                               {CATEGORIES[item.category]?.map(sub => (
                                 <option key={sub.name} value={sub.name} className="bg-white">
-                                  {sub.name} {sub.displayPrice ? `(${sub.displayPrice})` : sub.price > 0 ? `($${sub.price})` : ''}
+                                  {t(`categories.${sub.name}`, sub.name)} {sub.displayPrice ? `(${sub.displayPrice})` : sub.price > 0 ? `($${sub.price})` : ''}
                                 </option>
                               ))}
                             </select>
                           </div>
                           <div className="space-y-2">
-                            <label className="text-[10px] font-black text-[#B2BEC3] uppercase tracking-widest">角色人物數量</label>
+                            <label className="text-[10px] font-black text-[#B2BEC3] uppercase tracking-widest">{t('commission.characterCount')}</label>
                             <select
                               className="glass-input w-full appearance-none py-2 text-sm"
                               value={item.characterCount}
@@ -294,7 +295,7 @@ export default function CommissionForm() {
                 </div>
 
                 <div className="space-y-3">
-                  <label className="text-xs font-black text-[#B2BEC3] uppercase tracking-widest">付款方式</label>
+                  <label className="text-xs font-black text-[#B2BEC3] uppercase tracking-widest">{t('common.paymentMethod')}</label>
                   <div className="flex flex-wrap gap-4">
                     {['超商代碼', '信用卡', 'ATM'].map(method => (
                       <label key={method} className="flex items-center gap-2 cursor-pointer">
@@ -306,19 +307,19 @@ export default function CommissionForm() {
                           onChange={(e) => setFormData({...formData, paymentMethod: e.target.value})}
                           className="w-4 h-4 text-[#9D50BB] focus:ring-[#9D50BB]"
                         />
-                        <span className="text-[#2D3436] font-medium">{method}</span>
+                        <span className="text-[#2D3436] font-medium">{t(`common.paymentMethods.${method}`, method)}</span>
                       </label>
                     ))}
                   </div>
-                  <p className="text-xs text-[#636E72] mt-1">※ 繪師收到訂單後會傳付款連結給您</p>
+                  <p className="text-xs text-[#636E72] mt-1">{t('commission.paymentNote')}</p>
                 </div>
 
                 <div className="space-y-3">
-                  <label className="text-xs font-black text-[#B2BEC3] uppercase tracking-widest">詳細需求</label>
+                  <label className="text-xs font-black text-[#B2BEC3] uppercase tracking-widest">{t('common.details')}</label>
                   <textarea
                     required
                     rows={5}
-                    placeholder="若有多張圖片可上傳雲端網址"
+                    placeholder={t('commission.detailsPlaceholder')}
                     className="glass-input w-full resize-none"
                     value={formData.details}
                     onChange={(e) => setFormData({...formData, details: e.target.value})}
@@ -326,13 +327,13 @@ export default function CommissionForm() {
                 </div>
 
                 <div className="space-y-3">
-                  <label className="text-xs font-black text-[#B2BEC3] uppercase tracking-widest">參考圖片 (選填)</label>
+                  <label className="text-xs font-black text-[#B2BEC3] uppercase tracking-widest">{t('common.referenceImage')} (選填)</label>
                   <ImageUploader onImageProcessed={setImageBlob} />
                 </div>
 
                 <div className="pt-6 border-t border-black/5 flex items-center justify-between">
                   <div className="space-y-1">
-                    <div className="text-xs font-black text-[#B2BEC3] uppercase tracking-widest">預估總金額</div>
+                    <div className="text-xs font-black text-[#B2BEC3] uppercase tracking-widest">{t('common.estimatedTotal')}</div>
                     <div className="text-3xl font-black text-[#9D50BB]">${currentPrice.toLocaleString()}</div>
                   </div>
                   <button
@@ -340,7 +341,7 @@ export default function CommissionForm() {
                     disabled={isSubmitting}
                     className="glass-button px-10 py-4 text-xl"
                   >
-                    {isSubmitting ? '提交中...' : '確認提交委託'}
+                    {isSubmitting ? t('common.submitting') : t('commission.submit')}
                   </button>
                 </div>
               </form>
@@ -359,19 +360,19 @@ export default function CommissionForm() {
               <div className="w-24 h-24 bg-green-100 rounded-[2rem] flex items-center justify-center mx-auto mb-8">
                 <CheckCircle2 className="w-14 h-14 text-green-600" />
               </div>
-              <h2 className="text-5xl font-black text-[#2D3436]">提交成功！</h2>
+              <h2 className="text-5xl font-black text-[#2D3436]">{t('common.submitSuccess')}</h2>
               <p className="text-[#636E72] text-xl font-medium">
-                您的委託已成功送出，請記下您的訂單編號以便查詢進度。<br/>
+                {t('commission.successDesc')}<br/>
                 <span className="text-[#9D50BB] font-mono text-4xl mt-6 block font-black tracking-tighter">{generatedOrderId}</span>
                 <span className="text-sm font-bold text-[#B2BEC3] mt-4 block">
-                  下單時間：{new Date().toLocaleString('zh-TW', { hour12: true })}
+                  {t('common.orderTime')}{new Date().toLocaleString('zh-TW', { hour12: true })}
                 </span>
               </p>
               <button
                 onClick={() => window.location.href = '/'}
                 className="glass-button mt-10"
               >
-                返回首頁
+                {t('common.backToHome')}
               </button>
             </GlassCard>
           </motion.div>

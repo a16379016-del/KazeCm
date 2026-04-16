@@ -6,10 +6,12 @@ import { db } from '@/src/firebase';
 import { collection, addDoc, serverTimestamp } from 'firebase/firestore';
 import { Link } from 'react-router-dom';
 import { sendNotificationEmail } from '@/src/lib/email';
+import { useTranslation } from 'react-i18next';
 
 const QUOTE_ITEMS = ['插畫', '客製動態', 'Live2D vtuber角色繪製', '角色設計'];
 
 export default function QuoteForm() {
+  const { t } = useTranslation();
   const [step, setStep] = useState<'form' | 'success'>('form');
   const [generatedQuoteId, setGeneratedQuoteId] = useState('');
   const [formData, setFormData] = useState({
@@ -61,15 +63,15 @@ export default function QuoteForm() {
           >
             <GlassCard className="space-y-10 p-12 border-white/60">
               <div className="flex items-center justify-between">
-                <h2 className="text-4xl font-bold text-[#2D3436]">填寫報價單</h2>
+                <h2 className="text-4xl font-bold text-[#2D3436]">{t('quote.formTitle')}</h2>
                 <Link to="/" className="text-[#B2BEC3] hover:text-[#9D50BB] flex items-center gap-2 text-base font-bold transition-colors">
-                  <ArrowLeft className="w-5 h-5" /> 返回首頁
+                  <ArrowLeft className="w-5 h-5" /> {t('common.backToHome')}
                 </Link>
               </div>
 
               <form onSubmit={handleSubmit} className="space-y-8">
                 <div className="space-y-3">
-                  <label className="text-xs font-black text-[#B2BEC3] uppercase tracking-widest">暱稱</label>
+                  <label className="text-xs font-black text-[#B2BEC3] uppercase tracking-widest">{t('common.nickname')}</label>
                   <input
                     required
                     type="text"
@@ -80,7 +82,7 @@ export default function QuoteForm() {
                 </div>
 
                 <div className="space-y-3">
-                  <label className="text-xs font-black text-[#B2BEC3] uppercase tracking-widest">聯絡方式 (Email/Discord/Line)</label>
+                  <label className="text-xs font-black text-[#B2BEC3] uppercase tracking-widest">{t('common.contact')}</label>
                   <input
                     required
                     type="text"
@@ -91,22 +93,22 @@ export default function QuoteForm() {
                 </div>
 
                 <div className="space-y-3">
-                  <label className="text-xs font-black text-[#B2BEC3] uppercase tracking-widest">詢問項目</label>
+                  <label className="text-xs font-black text-[#B2BEC3] uppercase tracking-widest">{t('quote.inquiryItem')}</label>
                   <select
                     className="glass-input w-full appearance-none"
                     value={formData.item}
                     onChange={(e) => setFormData({...formData, item: e.target.value})}
                   >
-                    {QUOTE_ITEMS.map(item => <option key={item} value={item} className="bg-white">{item}</option>)}
+                    {QUOTE_ITEMS.map(item => <option key={item} value={item} className="bg-white">{t(`quoteItems.${item}`, item)}</option>)}
                   </select>
                 </div>
 
                 <div className="space-y-3">
-                  <label className="text-xs font-black text-[#B2BEC3] uppercase tracking-widest">詳細需求</label>
+                  <label className="text-xs font-black text-[#B2BEC3] uppercase tracking-widest">{t('common.details')}</label>
                   <textarea
                     required
                     rows={6}
-                    placeholder="請上傳雲端圖片"
+                    placeholder={t('quote.detailsPlaceholder')}
                     className="glass-input w-full resize-none"
                     value={formData.details}
                     onChange={(e) => setFormData({...formData, details: e.target.value})}
@@ -118,7 +120,7 @@ export default function QuoteForm() {
                   disabled={isSubmitting}
                   className="glass-button w-full text-xl py-4"
                 >
-                  {isSubmitting ? '提交中...' : '確認提交報價'}
+                  {isSubmitting ? t('common.submitting') : t('quote.submit')}
                 </button>
               </form>
             </GlassCard>
@@ -136,19 +138,19 @@ export default function QuoteForm() {
               <div className="w-24 h-24 bg-green-100 rounded-[2rem] flex items-center justify-center mx-auto mb-8">
                 <CheckCircle2 className="w-14 h-14 text-green-600" />
               </div>
-              <h2 className="text-5xl font-black text-[#2D3436]">提交成功！</h2>
+              <h2 className="text-5xl font-black text-[#2D3436]">{t('common.submitSuccess')}</h2>
               <p className="text-[#636E72] text-xl font-medium">
-                您的報價單已成功送出，請記下您的報價編號以便查詢進度。<br/>
+                {t('quote.successDesc')}<br/>
                 <span className="text-[#9D50BB] font-mono text-4xl mt-6 block font-black tracking-tighter">{generatedQuoteId}</span>
                 <span className="text-sm font-bold text-[#B2BEC3] mt-4 block">
-                  下單時間：{new Date().toLocaleString('zh-TW', { hour12: true })}
+                  {t('common.orderTime')}{new Date().toLocaleString('zh-TW', { hour12: true })}
                 </span>
               </p>
               <button
                 onClick={() => window.location.href = '/progress'}
                 className="glass-button mt-10"
               >
-                前往查詢進度
+                {t('quote.goProgress')}
               </button>
             </GlassCard>
           </motion.div>

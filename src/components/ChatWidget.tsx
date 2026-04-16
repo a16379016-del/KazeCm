@@ -6,6 +6,7 @@ import { motion, AnimatePresence } from 'motion/react';
 import { db } from '@/src/firebase';
 import { collection, query, orderBy, onSnapshot, addDoc, serverTimestamp, updateDoc, doc } from 'firebase/firestore';
 import { sendNotificationEmail } from '@/src/lib/email';
+import { useTranslation } from 'react-i18next';
 
 interface ChatWidgetProps {
   commissionDocId: string;
@@ -16,6 +17,7 @@ interface ChatWidgetProps {
 }
 
 export function ChatWidget({ commissionDocId, orderIdDisplay, isAdmin = false, collectionName = 'commissions', hasUnread = false }: ChatWidgetProps) {
+  const { t } = useTranslation();
   const [isOpen, setIsOpen] = useState(isAdmin);
   const [inputText, setInputText] = useState('');
   const [messages, setMessages] = useState<Message[]>([]);
@@ -57,7 +59,7 @@ export function ChatWidget({ commissionDocId, orderIdDisplay, isAdmin = false, c
   const formatTime = (timestamp: any) => {
     if (!timestamp) return '';
     const date = timestamp?.toDate ? timestamp.toDate() : new Date(timestamp);
-    return date.toLocaleTimeString('zh-TW', { hour: '2-digit', minute: '2-digit', hour12: true });
+    return date.toLocaleString('zh-TW', { month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit', hour12: true });
   };
 
   const handleSend = async () => {
@@ -94,13 +96,13 @@ export function ChatWidget({ commissionDocId, orderIdDisplay, isAdmin = false, c
       <div className="flex flex-col h-full bg-white/30 rounded-2xl border border-white/60 overflow-hidden">
         <div className="p-4 bg-gradient-to-r from-[#9D50BB] to-[#6E48AA] flex items-center gap-3">
           <MessageCircle className="w-5 h-5 text-white" />
-          <h3 className="text-sm font-black text-white">即時溝通 ({orderIdDisplay})</h3>
+          <h3 className="text-sm font-black text-white">{t('chat.title')} ({orderIdDisplay})</h3>
         </div>
         <div ref={scrollRef} className="flex-1 overflow-y-auto p-4 space-y-4 scrollbar-hide">
           {messages.length === 0 && (
             <div className="h-full flex flex-col items-center justify-center text-center opacity-30 space-y-2">
               <MessageCircle className="w-10 h-10 text-[#9D50BB]" />
-              <p className="text-xs font-black text-[#2D3436]">尚無對話記錄</p>
+              <p className="text-xs font-black text-[#2D3436]">{t('chat.noMessages')}</p>
             </div>
           )}
           {messages.map((msg) => {
@@ -126,7 +128,7 @@ export function ChatWidget({ commissionDocId, orderIdDisplay, isAdmin = false, c
             value={inputText}
             onChange={(e) => setInputText(e.target.value)}
             onKeyPress={(e) => e.key === 'Enter' && handleSend()}
-            placeholder="輸入訊息..."
+            placeholder={t('chat.placeholder')}
             className="flex-1 glass-input py-2 px-4 text-sm"
           />
           <button 
@@ -157,7 +159,7 @@ export function ChatWidget({ commissionDocId, orderIdDisplay, isAdmin = false, c
                   <MessageCircle className="w-5 h-5 text-white" />
                 </div>
                 <div>
-                  <h3 className="text-base font-black text-white">即時溝通</h3>
+                  <h3 className="text-base font-black text-white">{t('chat.title')}</h3>
                   <p className="text-[10px] text-white/70 font-bold uppercase tracking-widest">ID: {orderIdDisplay}</p>
                 </div>
               </div>
@@ -171,7 +173,7 @@ export function ChatWidget({ commissionDocId, orderIdDisplay, isAdmin = false, c
               {messages.length === 0 && (
                 <div className="h-full flex flex-col items-center justify-center text-center opacity-30 space-y-3">
                   <MessageCircle className="w-16 h-16 text-[#9D50BB]" />
-                  <p className="text-base font-black text-[#2D3436]">尚無對話記錄</p>
+                  <p className="text-base font-black text-[#2D3436]">{t('chat.noMessages')}</p>
                 </div>
               )}
               {messages.map((msg) => {
@@ -185,7 +187,7 @@ export function ChatWidget({ commissionDocId, orderIdDisplay, isAdmin = false, c
                       {msg.text}
                     </div>
                     <span className="text-[10px] text-[#B2BEC3] mt-2 px-1 font-black uppercase tracking-widest">
-                      {msg.sender === 'admin' ? '繪師' : '委託人'} • {formatTime(msg.timestamp)}
+                      {msg.sender === 'admin' ? t('chat.artist') : t('chat.client')} • {formatTime(msg.timestamp)}
                     </span>
                   </div>
                 );
@@ -199,7 +201,7 @@ export function ChatWidget({ commissionDocId, orderIdDisplay, isAdmin = false, c
                 value={inputText}
                 onChange={(e) => setInputText(e.target.value)}
                 onKeyPress={(e) => e.key === 'Enter' && handleSend()}
-                placeholder="輸入訊息..."
+                placeholder={t('chat.placeholder')}
                 className="flex-1 glass-input py-3 text-sm"
               />
               <button 
