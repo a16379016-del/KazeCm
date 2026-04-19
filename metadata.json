@@ -1,5 +1,5 @@
 {
-  "name": "ArtCommish - 繪圖委託管理系統",
+  "name": "Remix: ArtCommish - 繪圖委託管理系統",
   "description": "一個基於 Glassmorphism 風格的繪圖委託管理系統，支援即時進度追蹤、圖片壓縮上傳與一對一溝通功能。",
   "requestFramePermissions": [],
   "majorCapabilities": []

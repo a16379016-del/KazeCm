@@ -12,22 +12,32 @@ import { sendNotificationEmail } from '@/src/lib/email';
 
 const CATEGORIES: Record<string, { name: string; price: number; displayPrice?: string }[]> = {
   '塗鴉委託': [
-    { name: '大頭貼', price: 800 }, 
-    { name: '半身', price: 1600 }, 
-    { name: '全身', price: 2500 },
+    { name: '大頭貼', price: 1500 }, 
+    { name: '半身', price: 2500 }, 
+    { name: '全身', price: 5000 },
     { name: '+背景 半身', price: 500 },
     { name: '+背景 全身', price: 1000 },
     { name: '驚喜包', price: 2500 }
   ],
   '黑白頭貼': [{ name: '黑白頭貼', price: 700 }],
-  '精緻正比': [{ name: '精緻頭貼', price: 2500 }, { name: '半身', price: 5000 }, { name: '全身立繪', price: 8000 }],
-  '插畫': [{ name: '插畫', price: 10000 }],
-  'Q版': [{ name: '無背景', price: 1200, displayPrice: '1200-2000' }, { name: '有背景', price: 600 }],
+  '精緻正比': [
+    { name: '精緻頭貼', price: 3000 },
+    { name: '半身', price: 5000 },
+    { name: '全身立繪', price: 8000 }
+  ],
+  'Q版': [
+    { name: '無背景', price: 600 }, 
+    { name: '有背景', price: 1200 }
+  ],
+  '插畫': [
+    { name: '插畫', price: 15000 }
+  ],
   'Live2D vtuber角色繪製': [{ name: '標準', price: 20000, displayPrice: '20000-50000' }],
   '動態': [
-    { name: '純呼吸循環動畫（+客製插畫）', price: 5000 }, 
-    { name: '純呼吸循環動畫', price: 1500 }, 
-    { name: '客製表演動畫', price: 0 },
+    { name: '客製表演動畫', price: 0, displayPrice: '請使用報價功能' },
+    { name: '純呼吸循環動畫(+客製插畫)', price: 8000 }, 
+    { name: '客製動態桌面', price: 8000 },
+    { name: '純呼吸循環動畫', price: 1500 },
     { name: '拆圖', price: 1000, displayPrice: '1000-3000' }
   ],
   '其他': [
@@ -50,7 +60,7 @@ export default function CommissionForm() {
     details: '',
   });
   const [items, setItems] = useState<CommissionItem[]>([
-    { category: '塗鴉委託', subCategory: '大頭貼', price: 800, characterCount: 1 }
+    { category: '塗鴉委託', subCategory: '大頭貼', price: 1500, characterCount: 1 }
   ]);
   const [imageBlob, setImageBlob] = useState<Blob | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -58,7 +68,7 @@ export default function CommissionForm() {
   const currentPrice = items.reduce((sum, item) => sum + (item.price * item.characterCount), 0);
 
   const handleAddItem = () => {
-    setItems([...items, { category: '塗鴉委託', subCategory: '大頭貼', price: 800, characterCount: 1 }]);
+    setItems([...items, { category: '塗鴉委託', subCategory: '大頭貼', price: 1500, characterCount: 1 }]);
   };
 
   const handleRemoveItem = (index: number) => {
