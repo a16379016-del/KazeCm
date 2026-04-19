@@ -1,0 +1,81 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    
+    // ===============================================================
+    // Helper Functions
+    // ===============================================================
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+    
+    function isAdmin() {
+      return isAuthenticated() && 
+        (get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin' ||
+         request.auth.token.email == "a16379016@gmail.com");
+    }
+
+    function isValidCommission(data) {
+      return data.nickname is string && data.nickname.size() > 0 && data.nickname.size() < 100 &&
+             data.contact is string && data.contact.size() > 0 &&
+             data.title is string && data.title.size() > 0 &&
+             data.details is string && data.details.size() < 5000 &&
+             (!('imageUrl' in data) || data.imageUrl == null || data.imageUrl is string) &&
+             data.status in ['已填單', '排單中', '草稿', '線稿', '色稿', '成圖', '已交付'] &&
+             data.orderId is string;
+    }
+
+    function isValidQuote(data) {
+      return data.nickname is string &&
+             data.item is string &&
+             data.details is string &&
+             data.status in ['待回覆', '已回覆'] &&
+             data.quoteId is string;
+    }
+
+    // ===============================================================
+    // Rules
+    // ===============================================================
+
+    match /commissions/{commissionId} {
+      allow create: if isValidCommission(request.resource.data);
+      allow read: if isAdmin() || (resource != null && request.query.limit <= 1) || request.query.limit <= 20; 
+      allow update: if isAdmin() || (
+        request.resource.data.diff(resource.data).affectedKeys().hasOnly(['hasUnreadAdmin', 'hasUnreadUser', 'updatedAt'])
+      );
+      
+      match /messages/{messageId} {
+        allow read: if true;
+        allow create: if (request.resource.data.sender == 'user') || isAdmin();
+      }
+    }
+
+    match /quotes/{quoteId} {
+      allow create: if isValidQuote(request.resource.data);
+      allow read: if isAdmin() || (resource != null && request.query.limit <= 1) || request.query.limit <= 20; 
+      allow update: if isAdmin() || (
+        request.resource.data.diff(resource.data).affectedKeys().hasOnly(['hasUnreadAdmin', 'hasUnreadUser', 'updatedAt'])
+      );
+      
+      match /messages/{messageId} {
+        allow read: if true;
+        allow create: if (request.resource.data.sender == 'user') || isAdmin();
+      }
+    }
+
+    match /settings/global {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+    
+    match /users/{userId} {
+      allow read, write: if request.auth != null && request.auth.uid == userId;
+    }
+
+    match /mail/{mailId} {
+      allow create: if request.resource.data.to == 'a16379016@gmail.com' &&
+                       request.resource.data.message.subject is string &&
+                       request.resource.data.message.text is string;
+    }
+  }
+}

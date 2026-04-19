@@ -1,0 +1,56 @@
+{
+  "entities": {
+    "Commission": {
+      "title": "Commission",
+      "description": "A drawing commission request",
+      "type": "object",
+      "properties": {
+        "nickname": { "type": "string", "description": "User nickname" },
+        "contact": { "type": "string", "description": "Contact info" },
+        "title": { "type": "string", "description": "Commission title" },
+        "category": { "type": "string", "description": "Category" },
+        "details": { "type": "string", "description": "Detailed requirements" },
+        "imageUrl": { "type": "string", "description": "Reference image URL" },
+        "status": { "type": "string", "enum": ["已填單", "排單中", "草稿", "線稿", "色稿", "成圖", "已交付"] },
+        "createdAt": { "type": "string", "format": "date-time" },
+        "orderId": { "type": "string", "description": "Formal order ID" }
+      },
+      "required": ["nickname", "contact", "title", "category", "details", "imageUrl", "status", "createdAt", "orderId"]
+    },
+    "Message": {
+      "title": "Message",
+      "description": "A chat message between user and admin",
+      "type": "object",
+      "properties": {
+        "commissionId": { "type": "string" },
+        "sender": { "type": "string", "enum": ["user", "admin"] },
+        "text": { "type": "string" },
+        "timestamp": { "type": "string", "format": "date-time" }
+      },
+      "required": ["commissionId", "sender", "text", "timestamp"]
+    },
+    "Settings": {
+      "title": "Settings",
+      "description": "Global app settings",
+      "type": "object",
+      "properties": {
+        "isOpen": { "type": "boolean" }
+      },
+      "required": ["isOpen"]
+    }
+  },
+  "firestore": {
+    "/commissions/{commissionId}": {
+      "schema": "Commission",
+      "description": "Collection of commissions"
+    },
+    "/commissions/{commissionId}/messages/{messageId}": {
+      "schema": "Message",
+      "description": "Messages for a specific commission"
+    },
+    "/settings/global": {
+      "schema": "Settings",
+      "description": "Global settings document"
+    }
+  }
+}
