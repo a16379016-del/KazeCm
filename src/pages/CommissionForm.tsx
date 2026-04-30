@@ -26,8 +26,8 @@ const CATEGORIES: Record<string, { name: string; price: number; displayPrice?: s
     { name: '全身立繪', price: 8000 }
   ],
   'Q版': [
-    { name: '無背景', price: 600 }, 
-    { name: '有背景', price: 1200 }
+    { name: '無背景', price: 1200 }, 
+    { name: '有背景', price: 1800 }
   ],
   '插畫': [
     { name: '插畫', price: 15000 }
@@ -158,6 +158,7 @@ export default function CommissionForm() {
                 <p>{t('commission.term3')}</p>
                 <p>{t('commission.term4')}</p>
                 <p>{t('commission.term5')}</p>
+                <p>{t('commission.term6')}</p>
               </div>
 
               <div className="pt-8 border-t border-black/5">
