@@ -30,7 +30,7 @@ export default function Progress() {
     
     try {
       // Check commissions first
-      const qCommission = query(collection(db, 'commissions'), where('orderId', '==', idToSearch));
+      const qCommission = query(collection(db, 'commissions'), where('orderId', '==', idToSearch), limit(1));
       const querySnapshotCommission = await getDocs(qCommission);
 
       if (!querySnapshotCommission.empty) {
@@ -46,7 +46,7 @@ export default function Progress() {
       }
 
       // Check quotes if not found in commissions
-      const qQuote = query(collection(db, 'quotes'), where('quoteId', '==', idToSearch));
+      const qQuote = query(collection(db, 'quotes'), where('quoteId', '==', idToSearch), limit(1));
       const querySnapshotQuote = await getDocs(qQuote);
 
       if (!querySnapshotQuote.empty) {
