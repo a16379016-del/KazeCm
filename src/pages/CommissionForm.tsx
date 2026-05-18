@@ -20,25 +20,15 @@ const CATEGORIES: Record<string, { name: string; price: number; displayPrice?: s
     { name: '驚喜包', price: 2500 }
   ],
   '黑白頭貼': [{ name: '黑白頭貼', price: 700 }],
-  '精緻正比': [
-    { name: '精緻頭貼', price: 3000 },
-    { name: '半身', price: 5000 },
-    { name: '全身立繪', price: 8000 }
-  ],
-  'Q版': [
-    { name: '無背景', price: 1200 }, 
-    { name: '有背景', price: 1800 }
-  ],
-  '插畫': [
-    { name: '插畫', price: 15000 }
-  ],
+  '精緻正比': [{ name: '精緻頭貼', price: 2500 }, { name: '半身', price: 5000 }, { name: '全身立繪', price: 8000 }],
+  '插畫': [{ name: '插畫', price: 10000 }],
+  'Q版': [{ name: '無背景', price: 1200, displayPrice: '1200-2000' }, { name: '有背景', price: 600 }],
   'Live2D vtuber角色繪製': [{ name: '標準', price: 20000, displayPrice: '20000-50000' }],
   '動態': [
-    { name: '客製表演動畫', price: 0, displayPrice: '請使用報價功能' },
-    { name: '純呼吸循環動畫(+客製插畫)', price: 8000 }, 
-    { name: '客製動態桌面', price: 8000 },
-    { name: '純呼吸循環動畫', price: 1500 },
-    { name: '拆圖', price: 1000, displayPrice: '1000-3000' }
+    { name: '純呼吸循環動畫（+客製塗鴉插畫）', price: 8000, displayPrice: '8000-15000' }, 
+    { name: '-純呼吸循環動畫', price: 3000, displayPrice: '3000 - 6000$' }, 
+    { name: '客製表演動畫', price: 0 },
+    { name: '拆圖', price: 1500, displayPrice: '1500-5000$' }
   ],
   '其他': [
     { name: '其他', price: 0 },
@@ -158,7 +148,6 @@ export default function CommissionForm() {
                 <p>{t('commission.term3')}</p>
                 <p>{t('commission.term4')}</p>
                 <p>{t('commission.term5')}</p>
-                <p>{t('commission.term6')}</p>
               </div>
 
               <div className="pt-8 border-t border-black/5">

@@ -11,8 +11,8 @@ service cloud.firestore {
     
     function isAdmin() {
       return isAuthenticated() && 
-        (request.auth.token.email == "a16379016@gmail.com" ||
-         (exists(/databases/$(database)/documents/users/$(request.auth.uid)) && get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin'));
+        (get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin' ||
+         request.auth.token.email == "a16379016@gmail.com");
     }
 
     function isValidCommission(data) {
@@ -39,8 +39,7 @@ service cloud.firestore {
 
     match /commissions/{commissionId} {
       allow create: if isValidCommission(request.resource.data);
-      allow get: if true;
-      allow list: if isAdmin() || request.query.limit <= 20; 
+      allow read: if isAdmin() || (resource != null && request.query.limit <= 1) || request.query.limit <= 20; 
       allow update: if isAdmin() || (
         request.resource.data.diff(resource.data).affectedKeys().hasOnly(['hasUnreadAdmin', 'hasUnreadUser', 'updatedAt'])
       );
@@ -53,8 +52,7 @@ service cloud.firestore {
 
     match /quotes/{quoteId} {
       allow create: if isValidQuote(request.resource.data);
-      allow get: if true;
-      allow list: if isAdmin() || request.query.limit <= 20; 
+      allow read: if isAdmin() || (resource != null && request.query.limit <= 1) || request.query.limit <= 20; 
       allow update: if isAdmin() || (
         request.resource.data.diff(resource.data).affectedKeys().hasOnly(['hasUnreadAdmin', 'hasUnreadUser', 'updatedAt'])
       );
