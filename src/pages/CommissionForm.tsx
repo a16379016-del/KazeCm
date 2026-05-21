@@ -147,6 +147,7 @@ export default function CommissionForm() {
                 <p>{t('commission.term3')}</p>
                 <p>{t('commission.term4')}</p>
                 <p>{t('commission.term5')}</p>
+                <p>{t('commission.term6')}</p> 
               </div>
 
               <div className="pt-8 border-t border-black/5">
