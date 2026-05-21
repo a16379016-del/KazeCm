@@ -22,15 +22,22 @@ export default function Progress() {
   const [isSearching, setIsSearching] = useState(false);
 
   const executeSearch = async (idToSearch: string) => {
-    if (!idToSearch.trim()) return;
+    let cleanId = idToSearch.trim().toUpperCase();
+    if (!cleanId) return;
+
+    // 格式化用戶可能輸入的不同格式
+    if (cleanId.startsWith('ORDER-') || cleanId.startsWith('QUOTE-')) {
+      cleanId = '#' + cleanId;
+    }
+
     setIsSearching(true);
     setCommission(null);
     setQuote(null);
     setSearchResults(null);
     
     try {
-      // Check commissions first
-      const qCommission = query(collection(db, 'commissions'), where('orderId', '==', idToSearch));
+      // 加上 limit(1) 符合 Firestore 安全規則要求，並更快速地查找
+      const qCommission = query(collection(db, 'commissions'), where('orderId', '==', cleanId), limit(1));
       const querySnapshotCommission = await getDocs(qCommission);
 
       if (!querySnapshotCommission.empty) {
@@ -46,7 +53,7 @@ export default function Progress() {
       }
 
       // Check quotes if not found in commissions
-      const qQuote = query(collection(db, 'quotes'), where('quoteId', '==', idToSearch));
+      const qQuote = query(collection(db, 'quotes'), where('quoteId', '==', cleanId), limit(1));
       const querySnapshotQuote = await getDocs(qQuote);
 
       if (!querySnapshotQuote.empty) {
