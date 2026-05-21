@@ -14,15 +14,14 @@ const CATEGORIES: Record<string, { name: string; price: number; displayPrice?: s
   '塗鴉委託': [
     { name: '大頭貼', price: 1500 }, 
     { name: '半身', price: 2500 }, 
-    { name: '全身', price: 5000 },
-    { name: '+背景 半身', price: 500 },
-    { name: '+背景 全身', price: 1000 },
+    { name: '全身', price: 4000 },
+    { name: '+背景 半身', price: 1000 },
+    { name: '+背景 全身', price: 1500 , displayPrice: '1500-2500' },
     { name: '驚喜包', price: 2500 }
   ],
-  '黑白頭貼': [{ name: '黑白頭貼', price: 700 }],
   '精緻正比': [{ name: '精緻頭貼', price: 2500 }, { name: '半身', price: 5000 }, { name: '全身立繪', price: 8000 }],
-  '插畫': [{ name: '插畫', price: 10000 }],
-  'Q版': [{ name: '無背景', price: 1200, displayPrice: '1200-2000' }, { name: '有背景', price: 600 }],
+  '插畫': [{ name: '插畫', price: 12000 }],
+  'Q版': [{ name: '無背景', price: 1000 }, { name: '有背景', price: 1500, displayPrice: '1500-1800' }],
   'Live2D vtuber角色繪製': [{ name: '標準', price: 20000, displayPrice: '20000-50000' }],
   '動態': [
     { name: '純呼吸循環動畫（+客製塗鴉插畫）', price: 8000, displayPrice: '8000-15000' }, 
